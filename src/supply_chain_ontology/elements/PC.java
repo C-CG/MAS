@@ -7,8 +7,10 @@ import jade.content.onto.annotations.Slot;
 
 public class PC extends Item
 {
-	// Used to Identify item name e.g. Laptop or Desktop
+	// PC Variables
 	private String name;
+	private List<Components> components;
+
 	
 	@Slot(mandatory = true)
 	public String getName()
@@ -16,7 +18,19 @@ public class PC extends Item
 		return name;
 	}
 	
-	public void setName(String name) {
+	public void setName(String name) 
+	{
 		this.name = name;
+	}
+	
+	@Slot(mandatory = true)
+	public List<Components> componentList()
+	{
+		return components;
+	}
+	
+	public void setComponents(List<Components> components)
+	{
+		this.components = components;
 	}
 }

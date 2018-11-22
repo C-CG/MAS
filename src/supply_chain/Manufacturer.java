@@ -35,6 +35,7 @@ public class Manufacturer extends Agent
 	// AIDs for other Agents
 	private AID tickerAgent;
 	private AID customerAgent;
+	private AID supplierAgent;
 	
 	protected void setup() 
 	{
@@ -66,15 +67,33 @@ public class Manufacturer extends Agent
 		getContentManager().registerOntology(ontology);
 		
 		// Creating a new PC to sell (would be automated in the future, based on Customer's wants)
+		/* 
 		PC pc = new PC();
 		pc.setName("Desktop");
 		pc.setOrderNumber(0001);
+		*/
+		
+		// Creating new PC to sell (new Ontology)
+		PC pc = new PC();
+		pc.setName("Desktop");
+		pc.setOrderNumber(0001);
+		// Adding the Components
+		ArrayList<Components> components = new ArrayList<Components>();
+		Components c = new Components();
+		c.setRam("8gb");
+		c.setHD("1Tb");
+		c.setOS("Windows");
+		c.setCPU("desktopCPU");
+		c.setMotherboard("desktopMotherboard");
+		c.setScreen(false);
+		components.add(c);
+		pc.setComponents(components);
 		
 		// Adding the PC to the HashMap
 		computersForSale.put(pc.getOrderNumber(), pc);
 		
 		// Testing Output
-		System.out.println("Computers for sale: " + pc.getName() + " from: " + getAID().getName());
+		System.out.println("Computers for sale: " + pc.toString() + " from: " + getAID().getName());
 		
 		// Add Behaviours
 		addBehaviour(new TickerWaiter(this));
@@ -107,7 +126,7 @@ public class Manufacturer extends Agent
 				if(msg.getContent().equals("new day"))
 				{
 					// Add Behaviours
-					System.out.println("Message Received from Ticker Agent, starting work. - Manufacturer");
+					//System.out.println("Message Received from Ticker Agent, starting work. - Manufacturer");
 					addBehaviour(new SellBehaviour());
 				}
 				else
@@ -140,7 +159,7 @@ public class Manufacturer extends Agent
 				try
 				{
 					ContentElement ce = null;
-					System.out.println("Order Request Received from Customer");
+					System.out.println("Manufacturer Received Customer Order.");
 					
 					// JADE converts String to Java Object, Outputting it as a ContentElement
 					ce = getContentManager().extractContent(msg);
@@ -162,9 +181,9 @@ public class Manufacturer extends Agent
 								
 								System.out.println("PC Sold: " + pc.getName());
 								
-								// Add behaviour for completion of Day once PC has sold
-								// Need to re-do this behaviour to wait and make it cleaner, not just run here. Run in the TickerWaiter
-								myAgent.addBehaviour(new DayComplete(myAgent));
+								
+								// Change this to the Buy Behaviour 
+								myAgent.addBehaviour(new BuyBehaviour(myAgent));
 							}
 						}
 					}
@@ -184,10 +203,10 @@ public class Manufacturer extends Agent
 		
 	}
 	
-	public class DayComplete extends CyclicBehaviour
+	// Used for Purchasing Compontents from the Supplier/s
+	public class BuyBehaviour extends CyclicBehaviour
 	{
-		
-		public DayComplete(Agent a)
+		public BuyBehaviour(Agent a)
 		{
 			super(a);
 		}
@@ -195,13 +214,38 @@ public class Manufacturer extends Agent
 		@Override
 		public void action() 
 		{
+			// Send a Message or Request in here to Supplier Agent
+			// Run the DayComplete Behaviour in here
+			
+			// "Buying" components from Supplier, currently just a message. Need to setup the Ontology
+			ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+			msg.addReceiver(supplierAgent);
+
+			System.out.println("Manufacturer Placing Order...");
+			doWait(2000);
+			myAgent.send(msg);
+			// Remove Behaviour
+			myAgent.addBehaviour(new DayComplete(myAgent));
+			myAgent.removeBehaviour(this);		
+		}
+		
+	}
+	
+	public class DayComplete extends CyclicBehaviour
+	{
+		
+		public DayComplete(Agent a)
+		{
+			super(a);
+		}
+		// Need to re-do this behaviour to wait and make it cleaner, not just run here. Run in the TickerWaiter
+		@Override
+		public void action() 
+		{
 			// Finished "working" for the Day, relay message to Ticker Agent
 			ACLMessage tick = new ACLMessage(ACLMessage.INFORM);
 			tick.setContent("done");
 			tick.addReceiver(tickerAgent);
-			
-			System.out.println("Manufacturer Placing Order with Supplier... - " + getAID().getName());
-			doWait(2000);
 			myAgent.send(tick);
 			// Remove Behaviour
 			myAgent.removeBehaviour(this);

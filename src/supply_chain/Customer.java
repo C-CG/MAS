@@ -2,6 +2,8 @@ package supply_chain;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
+
 import jade.core.Agent;
 import jade.content.Concept;
 import jade.content.ContentElement;
@@ -19,7 +21,9 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import supply_chain.Manufacturer.BuyBehaviour;
 import jade.core.AID;
+
 
 //Importing Ontology/Elements
 import supply_chain_ontology.SupplyChainOntology;
@@ -92,8 +96,8 @@ public class Customer extends Agent
 				if(msg.getContent().equals("new day"))
 				{
 					// Add Behaviours
-					System.out.println("Message Received from Ticker Agent, starting work. - Customer");
-					addBehaviour(new BuyBehaviour(myAgent, 5000));
+					//System.out.println("Message Received from Ticker Agent, starting work. - Customer");
+					myAgent.addBehaviour(new BuyBehaviour(myAgent));
 				}
 				else
 				{
@@ -113,36 +117,112 @@ public class Customer extends Agent
 	
 	
 	
-	private class BuyBehaviour extends TickerBehaviour
+	private class BuyBehaviour extends CyclicBehaviour
 	{
 
-		public BuyBehaviour(Agent a, long period) {
-			super(a, period);
-			// TODO Auto-generated constructor stub
-		}
-		
-		// Executes every "tick"
-		protected void onTick() 
+		public BuyBehaviour(Agent a)
 		{
+			super(a);
+		}
+
+		@Override
+		public void action() {
 			// Preparing the request message
 			ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-			
+
 			// Set receiver to Manufacturer Agent
 			msg.addReceiver(manufacturerAgent);
 			msg.setLanguage(codec.getName());
 			msg.setOntology(ontology.getName()); 
-			
+
 			// Preparing order of PC (this is where the random algorithm would go, static for now)
+			/*
 			PC pc = new PC();
 			pc.setName("Desktop");
-			// Need to make this increment per day (static atm)
 			pc.setOrderNumber(0001);
+			// Adding the Components
+			ArrayList<Components> components = new ArrayList<Components>();
+			Components c = new Components();
+			c.setRam("8gb");
+			c.setHD("1Tb");
+			c.setOS("Windows");
+			c.setCPU("desktopCPU");
+			c.setMotherboard("desktopMotherboard");
+			c.setScreen(false);
+			components.add(c);
+			pc.setComponents(components);
+			*/
+			
+			// Preparing order of PC (Random Method)
+			Double rand;
+			rand = Math.random();
+			
+			System.out.println("Random Number: " + rand);
+			
+			// Setting Up PC/Components			
+			ArrayList<Components> components = new ArrayList<Components>();
+			Components c = new Components();
+			PC pc = new PC();
+			
+			if(rand < 0.5)
+			{
+				// Buy a Desktop
+				pc.setName("Desktop");
+				c.setCPU("desktopCPU");
+				c.setMotherboard("desktopMotherboard");
+				c.setScreen(false);
+			}
+			else
+			{
+				// Buy a Laptop
+				pc.setName("Laptop");
+				c.setCPU("laptopCPU");
+				c.setMotherboard("laptopMotherboard");
+				c.setScreen(true);			
+			}
+			
+			// Generate new Random Number
+			rand = Math.random();
+			
+			if (rand < 0.5)
+			{
+				c.setRam("8Gb");
+			}
+			else
+			{
+				c.setRam("16Gb");
+			}
+			
+			// Generate new Random Number
+			rand = Math.random();
+			
+			if (rand < 0.5)
+			{
+				c.setHD("1Tb");
+			}
+			else
+			{
+				c.setHD("2Tb");
+			}
+			
+			// Generate new Random Number
+			rand = Math.random();
+			
+			if (rand < 0.5)
+			{
+				c.setOS("Windows");
+			}
+			else
+			{
+				c.setOS("Linux");
+			}
+			
 			
 			// Order, sets Buyer and what Item they want
 			Sell order = new Sell();
 			order.setCustomer(myAgent.getAID());
 			order.setItem(pc);
-			
+
 			// Sending Message to Manufacturer
 			// IMPORTANT: Set up this way due to FIPA, otherwise we get an exception (crash)
 			Action request = new Action();
@@ -150,20 +230,30 @@ public class Customer extends Agent
 			request.setActor(manufacturerAgent); // the agent that you request to perform the action
 			try 
 			{
-			 // Let JADE convert from Java objects to string
-			 getContentManager().fillContent(msg, request); //send the wrapper object
-			 send(msg);
-			 // Order Complete which means the Day is done for the Customer Agent
-			 addBehaviour(new DayComplete(myAgent));
+				// Output to Console
+				System.out.println("Customer Placing Order...");
+				System.out.println("Find a way to Print, the ordered PC.");
+				doWait(2000);
+				
+				// Let JADE convert from Java objects to string
+				getContentManager().fillContent(msg, request); //send the wrapper object
+				send(msg);
+				
 			}
 			catch (CodecException ce) 
 			{
-			 ce.printStackTrace();
+				ce.printStackTrace();
 			}
 			catch (OntologyException oe) 
 			{
-			 oe.printStackTrace();
+				oe.printStackTrace();
 			} 
+			
+			// Order Complete which means the Day is done for the Customer Agent
+			addBehaviour(new DayComplete(myAgent));
+			// Remove Behaviour
+			myAgent.removeBehaviour(this);
+			
 		}
 		
 	}
@@ -183,7 +273,6 @@ public class Customer extends Agent
 			ACLMessage tick = new ACLMessage(ACLMessage.INFORM);
 			tick.setContent("done");
 			tick.addReceiver(tickerAgent);
-			System.out.println("Customer done working for the day.");
 			myAgent.send(tick);
 			// Remove Behaviour
 			myAgent.removeBehaviour(this);

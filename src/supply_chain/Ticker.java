@@ -71,7 +71,7 @@ public class Ticker extends Agent
 			{
 			case 0:
 
-				// Find all the Agents using the Directory Service (Manufacturer)
+				// Find all the Agents using the Directory Service (customer)
 				DFAgentDescription template1 = new DFAgentDescription();
 				ServiceDescription sd = new ServiceDescription();
 				sd.setType("customer");
@@ -82,6 +82,12 @@ public class Ticker extends Agent
 				ServiceDescription sd2 = new ServiceDescription();
 				sd2.setType("manufacturer");
 				template2.addServices(sd2);
+				
+				// Find all the Agents using the Directory Service (Manufacturer)
+				DFAgentDescription template3 = new DFAgentDescription();
+				ServiceDescription sd3 = new ServiceDescription();
+				sd3.setType("supplier");
+				template3.addServices(sd3);
 
 				try
 				{
@@ -96,6 +102,15 @@ public class Ticker extends Agent
 					{
 						simulationAgents.add(agentsType2[i].getName());
 					}
+					
+					// Supplier Agent, not Receiving Message (REQUEST) from Manufacturer. Need to work on Ontology to fix this
+					/*
+					DFAgentDescription[] agentsType3 = DFService.search(myAgent, template3);
+					for (int i=0; i<agentsType3.length; i++)
+					{
+						simulationAgents.add(agentsType3[i].getName());
+					}
+					*/
 				}
 				
 				catch(FIPAException e)
