@@ -2,6 +2,8 @@ package supply_chain;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
+
 import jade.core.Agent;
 import jade.content.Concept;
 import jade.content.ContentElement;
@@ -22,6 +24,7 @@ import jade.lang.acl.MessageTemplate;
 import supply_chain.Manufacturer.BuyBehaviour;
 import jade.core.AID;
 
+
 //Importing Ontology/Elements
 import supply_chain_ontology.SupplyChainOntology;
 import supply_chain_ontology.elements.*;
@@ -35,6 +38,11 @@ public class CustomerTest extends Agent
 	// AID of Manufacturer
 	private AID manufacturerAgent;
 	private AID tickerAgent;
+	
+	// Variables
+	private int orderNum = 0;
+	private int dayNum = 1;
+	
 	
 	protected void setup() 
 	 { 
@@ -93,7 +101,7 @@ public class CustomerTest extends Agent
 				if(msg.getContent().equals("new day"))
 				{
 					// Add Behaviours
-					System.out.println("Message Received from Ticker Agent, starting work. - Customer");
+					//System.out.println("Message Received from Ticker Agent, starting work. - Customer");
 					myAgent.addBehaviour(new BuyBehaviour(myAgent));
 				}
 				else
@@ -132,13 +140,83 @@ public class CustomerTest extends Agent
 			msg.setLanguage(codec.getName());
 			msg.setOntology(ontology.getName()); 
 
-			// Preparing order of PC (this is where the random algorithm would go, static for now)
+			// Preparing order of PC (Random Method)
+			Double rand;
+			rand = Math.random();
+			
+			//Testing Floor function
+			int dueInDays;
+			int price;
+			int quantity;
+			
+			dueInDays = floor(1,10, rand);
+			price = floor(600,200,rand);
+			quantity = floor(1,10,rand);
+			
+			
+			// Setting Up PC/Components			
+			ArrayList<Components> components = new ArrayList<Components>();
+			Components c = new Components();
 			PC pc = new PC();
-			pc.setName("Desktop");
-			// Need to make this increment per day (static atm)
-			pc.setOrderNumber(0001);
-
+			
+			if(rand < 0.5)
+			{
+				// Buy a Desktop
+				pc.setName("Desktop");
+				pc.setOrderNumber(orderNum);
+				c.setCPU("desktopCPU");
+				c.setMotherboard("desktopMotherboard");
+				c.setScreen(false);
+			}
+			else
+			{
+				// Buy a Laptop
+				pc.setName("Laptop");
+				pc.setOrderNumber(orderNum);
+				c.setCPU("laptopCPU");
+				c.setMotherboard("laptopMotherboard");
+				c.setScreen(true);			
+			}
+			
+			// Generate new Random Number
+			rand = Math.random();
+			
+			if (rand < 0.5)
+			{
+				c.setRam("8Gb");
+			}
+			else
+			{
+				c.setRam("16Gb");
+			}
+			
+			// Generate new Random Number
+			rand = Math.random();
+			
+			if (rand < 0.5)
+			{
+				c.setHD("1Tb");
+			}
+			else
+			{
+				c.setHD("2Tb");
+			}
+			
+			// Generate new Random Number
+			rand = Math.random();
+			
+			if (rand < 0.5)
+			{
+				c.setOS("Windows");
+			}
+			else
+			{
+				c.setOS("Linux");
+			}
+			
+			
 			// Order, sets Buyer and what Item they want
+			// Need to potentially add the Quanity For Loop here?
 			Sell order = new Sell();
 			order.setCustomer(myAgent.getAID());
 			order.setItem(pc);
@@ -153,7 +231,10 @@ public class CustomerTest extends Agent
 				// Output to Console
 				System.out.println("Customer Placing Order...");
 				doWait(2000);
-				
+				System.out.println("Customer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " " + c.getRam() + " " + c.getHD() + " " + c.getOS() + " ]" + " Due: " + dueInDays + " days" +" Price: £" + price);
+				doWait(2000);
+				// ++ Counter for Order Number here
+				++orderNum;
 				// Let JADE convert from Java objects to string
 				getContentManager().fillContent(msg, request); //send the wrapper object
 				send(msg);
@@ -198,5 +279,11 @@ public class CustomerTest extends Agent
 			
 		}
 		
+	}
+	
+	
+	public int floor(int num1, int num2, double num3)
+	{
+		return (int) (num1 + num2 * num3);
 	}
 }

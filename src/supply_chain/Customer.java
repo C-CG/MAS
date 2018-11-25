@@ -21,10 +21,10 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.util.leap.List;
+import jade.util.leap.Map;
 import supply_chain.Manufacturer.BuyBehaviour;
 import jade.core.AID;
-
-
 //Importing Ontology/Elements
 import supply_chain_ontology.SupplyChainOntology;
 import supply_chain_ontology.elements.*;
@@ -38,6 +38,15 @@ public class Customer extends Agent
 	// AID of Manufacturer
 	private AID manufacturerAgent;
 	private AID tickerAgent;
+	
+	// Variables
+	public int orderNum = 1;
+	public int dayNum = 1;
+	public int dueInDays;
+	HashMap<Integer, Integer> customerOrders = new HashMap<Integer, Integer>();
+	
+	// WORKS!!!!!! 
+	HashMap<Integer, ArrayList<Integer>> customerOrdersTest = new HashMap<Integer, ArrayList<Integer>>();
 	
 	protected void setup() 
 	 { 
@@ -98,6 +107,7 @@ public class Customer extends Agent
 					// Add Behaviours
 					//System.out.println("Message Received from Ticker Agent, starting work. - Customer");
 					myAgent.addBehaviour(new BuyBehaviour(myAgent));
+					myAgent.addBehaviour(new CheckDelivery(myAgent, dayNum, dueInDays, orderNum));
 				}
 				else
 				{
@@ -135,29 +145,17 @@ public class Customer extends Agent
 			msg.setLanguage(codec.getName());
 			msg.setOntology(ontology.getName()); 
 
-			// Preparing order of PC (this is where the random algorithm would go, static for now)
-			/*
-			PC pc = new PC();
-			pc.setName("Desktop");
-			pc.setOrderNumber(0001);
-			// Adding the Components
-			ArrayList<Components> components = new ArrayList<Components>();
-			Components c = new Components();
-			c.setRam("8gb");
-			c.setHD("1Tb");
-			c.setOS("Windows");
-			c.setCPU("desktopCPU");
-			c.setMotherboard("desktopMotherboard");
-			c.setScreen(false);
-			components.add(c);
-			pc.setComponents(components);
-			*/
-			
 			// Preparing order of PC (Random Method)
 			Double rand;
 			rand = Math.random();
 			
-			System.out.println("Random Number: " + rand);
+			//Testing Floor function
+			int price;
+			int quantity;
+			
+			dueInDays = floor(1,10, rand);
+			price = floor(600,200,rand);
+			quantity = floor(1,10,rand);
 			
 			// Setting Up PC/Components			
 			ArrayList<Components> components = new ArrayList<Components>();
@@ -168,6 +166,7 @@ public class Customer extends Agent
 			{
 				// Buy a Desktop
 				pc.setName("Desktop");
+				pc.setOrderNumber(orderNum);
 				c.setCPU("desktopCPU");
 				c.setMotherboard("desktopMotherboard");
 				c.setScreen(false);
@@ -176,6 +175,7 @@ public class Customer extends Agent
 			{
 				// Buy a Laptop
 				pc.setName("Laptop");
+				pc.setOrderNumber(orderNum);
 				c.setCPU("laptopCPU");
 				c.setMotherboard("laptopMotherboard");
 				c.setScreen(true);			
@@ -232,9 +232,27 @@ public class Customer extends Agent
 			{
 				// Output to Console
 				System.out.println("Customer Placing Order...");
-				System.out.println("Find a way to Print, the ordered PC.");
 				doWait(2000);
+				System.out.println("Customer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " " + c.getRam() + " " + c.getHD() + " " + c.getOS() + " ]" + " Due: " + dueInDays + " days" +" Price: £" + price);
+				// Maps Order Number to due days e.g. 1 7
+				customerOrders.put(orderNum, dueInDays);
 				
+				// Testing of Adding Orders to List/HashMap
+				ArrayList<Integer> orders = new ArrayList<Integer>();
+				// Adding Day of Order, Due Date, Price into List
+				orders.add(dayNum);
+				orders.add(dueInDays);
+				orders.add(price);
+				// Mapping these List Values to a key
+				customerOrdersTest.put(orderNum, orders);
+				System.out.println("Testing HashMap/ArrayList: " + customerOrdersTest.toString());
+				
+				// Trying to get Individual Values from each key
+				System.out.println("Testing to get Individual Values from each Key: " + "Day Number: " +  customerOrdersTest.get(1).get(0) + " Due Days: " +  customerOrdersTest.get(1).get(1));
+				
+				doWait(2000);
+				// ++ Counter for Order Number here
+				++orderNum;
 				// Let JADE convert from Java objects to string
 				getContentManager().fillContent(msg, request); //send the wrapper object
 				send(msg);
@@ -276,8 +294,53 @@ public class Customer extends Agent
 			myAgent.send(tick);
 			// Remove Behaviour
 			myAgent.removeBehaviour(this);
+			++dayNum;
 			
 		}
 		
+	}
+	
+	
+	public int floor(int num1, int num2, double num3)
+	{
+		return (int) (num1 + num2 * num3);
+	}
+	
+	// Call this in DayComplete? (Sloppy but would work)
+	public class CheckDelivery extends CyclicBehaviour
+	{
+		public CheckDelivery(Agent a, int dayNum, int dueInDays, int orderNum)
+		{
+			super(a);
+		}
+
+		@Override
+		public void action() 
+		{
+			int dueDate;
+			// Gets the due date for the First Order
+			//dueDate = 1 + customerOrders.get(1);
+			// dueDate test working with the HashMap and ArrayList
+			dueDate = customerOrdersTest.get(1).get(0) + customerOrdersTest.get(1).get(1);
+		
+			/*
+			System.out.println("List: " + customerOrders);
+			System.out.println("Get Specific Item in List: " + customerOrders.get(1));
+			myAgent.removeBehaviour(this);
+			*/
+			// Works
+			//System.out.println("Due Date for Order 1: " + dueDate);
+			//System.out.println(dayNum);
+			if (dayNum == dueDate)
+			{
+				System.out.println("Order: 1 should be delivered.");
+				myAgent.removeBehaviour(this);
+			}
+			else
+			{
+				myAgent.removeBehaviour(this);
+			}
+			
+		}
 	}
 }

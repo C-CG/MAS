@@ -93,7 +93,7 @@ public class Manufacturer extends Agent
 		computersForSale.put(pc.getOrderNumber(), pc);
 		
 		// Testing Output
-		System.out.println("Computers for sale: " + pc.toString() + " from: " + getAID().getName());
+		//System.out.println("Computers for sale: " + pc.toString() + " from: " + getAID().getName());
 		
 		// Add Behaviours
 		addBehaviour(new TickerWaiter(this));
@@ -159,7 +159,6 @@ public class Manufacturer extends Agent
 				try
 				{
 					ContentElement ce = null;
-					System.out.println("Manufacturer Received Customer Order.");
 					
 					// JADE converts String to Java Object, Outputting it as a ContentElement
 					ce = getContentManager().extractContent(msg);
@@ -179,7 +178,8 @@ public class Manufacturer extends Agent
 							{
 								PC pc = (PC)it;
 								
-								System.out.println("PC Sold: " + pc.getName());
+								
+								System.out.println("Manufacturer Received Customer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " ]");
 								
 								
 								// Change this to the Buy Behaviour 
