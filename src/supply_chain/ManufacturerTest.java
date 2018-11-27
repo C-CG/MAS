@@ -38,6 +38,13 @@ public class ManufacturerTest extends Agent
 	private AID customerAgent;
 	private AID supplierAgent;
 	
+	// HashMap / list to map an order/components (Used for the building of a PC)
+	HashMap<Integer, ArrayList<String>> customerOrders = new HashMap<Integer, ArrayList<String>>();
+	// order variable to track number of orders
+	int orderNum = 1;
+	// See if we are able to count the number of certain components from the list (Will be used for stock checking, once order has been delivered)
+	int desktopCPUCount = 0;
+	
 	protected void setup() 
 	{
 		// Register the Agent in the Directory
@@ -157,6 +164,8 @@ public class ManufacturerTest extends Agent
 								
 								System.out.println("Manufacturer Received Customer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " ]");
 								
+								
+								
 								// Placing Order with Supplier (Needs to be put into a separate behaviour)
 								
 								// Preparing the request message
@@ -199,7 +208,46 @@ public class ManufacturerTest extends Agent
 									oe.printStackTrace();
 								} 
 								
+								
+								// Storing of a Customers Order (Need to put this in a seperate class StockCheck)
+								// Testing of Adding Orders to List/HashMap
+								ArrayList<String> orders = new ArrayList<String>();
+								
+								// Adding Day of Order, Due Date, Price into List
+								orders.add(pc.getComponents().get(0).getCPU());
+								orders.add(pc.getComponents().get(0).getMotherboard());
+								orders.add(pc.getComponents().get(0).getRam());
+								orders.add(pc.getComponents().get(0).getHD());
+								orders.add(pc.getComponents().get(0).getOS());
+								// NEED TO ADD SCREEN
+								
+								
+								// Mapping these List Values to a key
+								customerOrders.put(pc.getOrderNumber(), orders);
+								
+								// Testing output
+								System.out.println("Order Tracking: " + customerOrders);
+								
+								
+								
+								//System.out.println(customerOrders.size());
+								
+								
+									if (customerOrders.get(orderNum).get(0).equals("desktopCPU"))
+									{
+										++desktopCPUCount;
+									}
+									else
+									{
+										// nothing
+									}
+								
+								
+								System.out.println("Counting Desktop CPU's: " + desktopCPUCount);
+								
+								
 								// Order Complete which means the Day is done for the Manufacturer Agent
+								++orderNum;
 								addBehaviour(new DayComplete(myAgent));
 								// Remove Behaviour
 								myAgent.removeBehaviour(this);
@@ -221,6 +269,18 @@ public class ManufacturerTest extends Agent
 		}
 		
 	}
+	
+	public class StockCheck extends CyclicBehaviour
+	{
+
+		@Override
+		public void action() {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+	
 	
 	// Used for Purchasing Compontents from the Supplier/s
 	public class BuyBehaviour extends CyclicBehaviour
