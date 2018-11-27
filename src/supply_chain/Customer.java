@@ -245,10 +245,10 @@ public class Customer extends Agent
 				orders.add(price);
 				// Mapping these List Values to a key
 				customerOrdersTest.put(orderNum, orders);
-				System.out.println("Testing HashMap/ArrayList: " + customerOrdersTest.toString());
+				//System.out.println("Testing HashMap/ArrayList: " + customerOrdersTest.toString());
 				
 				// Trying to get Individual Values from each key
-				System.out.println("Testing to get Individual Values from each Key: " + "Day Number: " +  customerOrdersTest.get(1).get(0) + " Due Days: " +  customerOrdersTest.get(1).get(1));
+				//System.out.println("Testing to get Individual Values from each Key: " + "Day Number: " +  customerOrdersTest.get(1).get(0) + " Due Days: " +  customerOrdersTest.get(1).get(1));
 				
 				doWait(2000);
 				// ++ Counter for Order Number here

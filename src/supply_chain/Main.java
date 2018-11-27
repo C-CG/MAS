@@ -14,7 +14,7 @@ public class Main {
 			AgentController rma = myContainer.createNewAgent("rma", "jade.tools.rma.rma", null);
 			rma.start();
 			
-			AgentController ManufacturerAgent = myContainer.createNewAgent("Manufacturer", Manufacturer.class.getCanonicalName(), null);
+			AgentController ManufacturerAgent = myContainer.createNewAgent("Manufacturer", ManufacturerTest.class.getCanonicalName(), null);
 			ManufacturerAgent.start();
 			
 			AgentController CustomerAgent = myContainer.createNewAgent("Customer", Customer.class.getCanonicalName(), null);

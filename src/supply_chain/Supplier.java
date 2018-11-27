@@ -20,15 +20,24 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import supply_chain.Manufacturer.DayComplete;
 import supply_chain.Manufacturer.TickerWaiter;
+import supply_chain.ManufacturerTest.BuyBehaviour;
+import supply_chain_ontology.SupplyChainOntology;
+import supply_chain_ontology.elements.Item;
+import supply_chain_ontology.elements.PC;
+import supply_chain_ontology.elements.Sell;
 import jade.core.AID;
 
 public class Supplier extends Agent 
 {
+	// Look into what the "codec" does
+	private Codec codec = new SLCodec();
+	private Ontology ontology = SupplyChainOntology.getInstance();
+
 	// AIDs for other Agents
 	private AID tickerAgent;
 	private AID customerAgent;
 	private AID manufacturerAgent;
-	
+
 	protected void setup()
 	{
 		// Register the Agent in the Directory
@@ -52,41 +61,44 @@ public class Supplier extends Agent
 		{
 			e.printStackTrace();
 		}
-		
+
+		// Look into what these do
+		getContentManager().registerLanguage(codec);
+		getContentManager().registerOntology(ontology);
+
 		// Add Behaviours
 		addBehaviour(new TickerWaiter(this));
 	}
-	
+
 	public class TickerWaiter extends CyclicBehaviour
 	{
-		
+
 		public TickerWaiter(Agent a)
 		{
 			super(a);
 		}
-		
+
 		@Override
 		public void action() 
 		{
-			
+
 			// Setting up Messaging for Communication/Working
 			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchContent("end"), MessageTemplate.MatchContent("new day"));
 			ACLMessage msg = myAgent.receive(mt);
-			
+
 			if (msg !=null)
 			{
 				if(tickerAgent == null)
 				{
 					tickerAgent = msg.getSender();
 				}
-				
+
 				// Checking if the message received states a "new day", if so do work.
 				if(msg.getContent().equals("new day"))
 				{
-					// Add Behaviours
-					System.out.println("Message Received from Ticker Agent, starting work. - Supplier");
-					// Add Behaviour "sellBehaviour"
-					myAgent.addBehaviour(new SellBehaviour(myAgent));
+					
+					// Add Behaviour
+					myAgent.addBehaviour(new ReceiveOrder());
 				}
 				else
 				{
@@ -100,9 +112,69 @@ public class Supplier extends Agent
 				block();
 			}
 		}
-		
+
 	}
-	
+
+	public class ReceiveOrder extends CyclicBehaviour
+	{
+
+		@Override
+		public void action() 
+		{
+			// Responds to Customer REQUEST messages only
+			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
+			ACLMessage msg = receive(mt);
+
+			// Message Validation
+			if(msg !=null)
+			{
+				try
+				{
+					ContentElement ce = null;
+
+					// JADE converts String to Java Object, Outputting it as a ContentElement
+					ce = getContentManager().extractContent(msg);
+
+					if(ce instanceof Action)
+					{
+						Concept action = ((Action)ce).getAction();
+
+						if (action instanceof Sell)
+						{
+							Sell order = (Sell)action;
+
+							Item it = order.getItem();
+
+							// Printing PC name to demo Ontology
+							if(it instanceof PC)
+							{
+								PC pc = (PC)it;
+
+								System.out.println("Supplier Received Manufacturer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " ]");
+
+								myAgent.addBehaviour(new DayComplete(myAgent));
+
+							}
+						}
+					}
+				}
+				catch(CodecException ce)
+				{
+					ce.printStackTrace();
+				}
+				catch(OntologyException oe) 
+				{
+					oe.printStackTrace();
+				}
+
+			}
+
+		}
+
+	}
+
+
+
 	private class SellBehaviour extends CyclicBehaviour
 	{
 		// Doubt I need this (need to copy the sellBehavior from Manufacturer, has unlimited stock so don't need to adjust it. Just need new ontology for it)
@@ -110,35 +182,35 @@ public class Supplier extends Agent
 		{
 			super(a);
 		}
-		
+
 		@Override
 		public void action() {
-			
+
 			// Responds to Customer REQUEST messages only
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
 			ACLMessage msg = receive(mt);
-			
+
 			if (msg !=null)
 			{
 				// Checking if the message received states a "order", if so do work.
-				
-					// Add Behaviours (instead of this print, we need the actual order)
-					System.out.println("Supplier Received Order.");
-					// Add Behaviour "dayComplete behaviour"
-					myAgent.addBehaviour(new DayComplete(myAgent));
+
+				// Add Behaviours (instead of this print, we need the actual order)
+				System.out.println("Supplier Received Order.");
+				// Add Behaviour "dayComplete behaviour"
+				myAgent.addBehaviour(new DayComplete(myAgent));
 			}
 			else
 			{
 				block();
 			}
-			
+
 		}
-		
+
 	}
-	
+
 	public class DayComplete extends CyclicBehaviour
 	{
-		
+
 		public DayComplete(Agent a)
 		{
 			super(a);
@@ -154,8 +226,8 @@ public class Supplier extends Agent
 			myAgent.send(tick);
 			// Remove Behaviour
 			myAgent.removeBehaviour(this);
-			
+
 		}
-		
+
 	}
 }

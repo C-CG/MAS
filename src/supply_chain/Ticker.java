@@ -104,13 +104,13 @@ public class Ticker extends Agent
 					}
 					
 					// Supplier Agent, not Receiving Message (REQUEST) from Manufacturer. Need to work on Ontology to fix this
-					/*
+					
 					DFAgentDescription[] agentsType3 = DFService.search(myAgent, template3);
 					for (int i=0; i<agentsType3.length; i++)
 					{
 						simulationAgents.add(agentsType3[i].getName());
 					}
-					*/
+					
 				}
 				
 				catch(FIPAException e)
