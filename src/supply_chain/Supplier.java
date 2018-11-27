@@ -37,6 +37,8 @@ public class Supplier extends Agent
 	private AID tickerAgent;
 	private AID customerAgent;
 	private AID manufacturerAgent;
+	
+	int totalPrice = 0;
 
 	protected void setup()
 	{
@@ -151,7 +153,66 @@ public class Supplier extends Agent
 								PC pc = (PC)it;
 
 								System.out.println("Supplier Received Manufacturer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " ]");
-
+								doWait(2000);
+								
+								// Move this into it's own function (testing right now)
+								
+								int motherboard = 0;
+								int cpu = 0;
+								int ram = 0;
+								int hdd = 0;
+								int screen = 0;
+								int os = 0;
+								int delivery = 1;
+								
+								
+								
+								// Only testing Supplier 1
+								if (pc.getName().equals("Desktop"))
+								{
+									motherboard = 75;
+									cpu = 150;
+									screen = 0;
+								}
+								else
+								{
+									motherboard = 125;
+									cpu = 200;
+									screen = 100;
+								}
+								
+								
+								if (pc.getComponents().get(0).getHD().equals("1Tb"))
+								{
+									hdd = 50;
+								}
+								else
+								{
+									hdd = 75;
+								}
+								
+								if (pc.getComponents().get(0).getRam().equals("8Gb"))
+								{
+									ram = 50;
+								}
+								else
+								{
+									ram = 90;
+								}
+								
+								if (pc.getComponents().get(0).getOS().equals("Windows"))
+								{
+									os = 75;
+								}
+								else
+								{
+									os = 0;
+								}
+								
+								totalPrice = motherboard + cpu + screen + hdd + ram + os;
+								
+								System.out.println("Supplier 1: " + delivery + " Day/s " +  "Price: " + "£" + totalPrice);
+								
 								myAgent.addBehaviour(new DayComplete(myAgent));
 
 							}
@@ -219,6 +280,9 @@ public class Supplier extends Agent
 		@Override
 		public void action() 
 		{
+			//reset totalPrice
+			totalPrice = 0;
+			
 			// Finished "working" for the Day, relay message to Ticker Agent
 			ACLMessage tick = new ACLMessage(ACLMessage.INFORM);
 			tick.setContent("done");

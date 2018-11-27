@@ -24,7 +24,7 @@ public class PC extends Item
 	}
 	
 	@Slot(mandatory = true)
-	public List<Components> componentList()
+	public List<Components> getComponents()
 	{
 		return components;
 	}
@@ -34,3 +34,6 @@ public class PC extends Item
 		this.components = components;
 	}
 }
+
+
+

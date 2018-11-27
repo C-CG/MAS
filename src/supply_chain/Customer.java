@@ -162,6 +162,8 @@ public class Customer extends Agent
 			Components c = new Components();
 			PC pc = new PC();
 			
+			
+			
 			if(rand < 0.5)
 			{
 				// Buy a Desktop
@@ -169,7 +171,7 @@ public class Customer extends Agent
 				pc.setOrderNumber(orderNum);
 				c.setCPU("desktopCPU");
 				c.setMotherboard("desktopMotherboard");
-				c.setScreen(false);
+				c.setScreen(false);			
 			}
 			else
 			{
@@ -178,7 +180,7 @@ public class Customer extends Agent
 				pc.setOrderNumber(orderNum);
 				c.setCPU("laptopCPU");
 				c.setMotherboard("laptopMotherboard");
-				c.setScreen(true);			
+				c.setScreen(true);	
 			}
 			
 			// Generate new Random Number
@@ -217,6 +219,9 @@ public class Customer extends Agent
 				c.setOS("Linux");
 			}
 			
+			// Adding components to ArrayList
+			components.add(c);
+			pc.setComponents(components);
 			
 			// Order, sets Buyer and what Item they want
 			Sell order = new Sell();
@@ -236,6 +241,9 @@ public class Customer extends Agent
 				System.out.println("Customer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " " + c.getRam() + " " + c.getHD() + " " + c.getOS() + " ]" + " Due: " + dueInDays + " days" +" Price: £" + price);
 				// Maps Order Number to due days e.g. 1 7
 				customerOrders.put(orderNum, dueInDays);
+				
+				// Testing the Set/Get of PC Components
+				//System.out.println("Get components: " + pc.getComponents().get(0).getRam());
 				
 				// Testing of Adding Orders to List/HashMap
 				ArrayList<Integer> orders = new ArrayList<Integer>();
