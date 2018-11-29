@@ -3,9 +3,13 @@ package supply_chain_ontology.elements;
 import jade.content.Concept;
 import jade.content.onto.annotations.Slot;
 
+
+
 public class Item implements Concept 
 {
 	private int orderNumber;
+	private java.util.ArrayList<Integer> details;
+	
 	@Slot (mandatory = true)
 	public int getOrderNumber()
 	{
@@ -16,4 +20,5 @@ public class Item implements Concept
 	{
 		this.orderNumber = orderNumber;
 	}
+		
 }

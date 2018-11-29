@@ -146,6 +146,8 @@ public class Supplier extends Agent
 							Sell order = (Sell)action;
 
 							Item it = order.getItem();
+							
+							
 
 							// Printing PC name to demo Ontology
 							if(it instanceof PC)
@@ -153,6 +155,11 @@ public class Supplier extends Agent
 								PC pc = (PC)it;
 
 								System.out.println("Supplier Received Manufacturer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " ]");
+								
+								// Testing output of details
+								System.out.println("Testing Order Details Extraction from Order: " + order.getDetails());
+								
+								
 								doWait(2000);
 								
 								// Move this into it's own function (testing right now)

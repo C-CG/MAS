@@ -223,10 +223,19 @@ public class Customer extends Agent
 			components.add(c);
 			pc.setComponents(components);
 			
+			// Testing of Adding Orders to List/HashMap
+			ArrayList<Integer> details = new ArrayList<Integer>();
+			// Adding Day of Order, Due Date, Price into List
+			details.add(dayNum);
+			details.add(dueInDays);
+			details.add(price);
+			
 			// Order, sets Buyer and what Item they want
 			Sell order = new Sell();
 			order.setCustomer(myAgent.getAID());
 			order.setItem(pc);
+			// need to add orderDetails here
+			order.setDetails(details);
 
 			// Sending Message to Manufacturer
 			// IMPORTANT: Set up this way due to FIPA, otherwise we get an exception (crash)
@@ -245,14 +254,14 @@ public class Customer extends Agent
 				// Testing the Set/Get of PC Components
 				//System.out.println("Get components: " + pc.getComponents().get(0).getRam());
 				
-				// Testing of Adding Orders to List/HashMap
-				ArrayList<Integer> orders = new ArrayList<Integer>();
-				// Adding Day of Order, Due Date, Price into List
-				orders.add(dayNum);
-				orders.add(dueInDays);
-				orders.add(price);
+				// Testing output of details
+				//System.out.println("Testing Order Details Extraction from order: " + order.getDetails());
+				
+				// Add order details to "Sell order"
+				
+				
 				// Mapping these List Values to a key
-				customerOrdersTest.put(orderNum, orders);
+				customerOrdersTest.put(orderNum, details);
 				//System.out.println("Testing HashMap/ArrayList: " + customerOrdersTest.toString());
 				
 				// Trying to get Individual Values from each key

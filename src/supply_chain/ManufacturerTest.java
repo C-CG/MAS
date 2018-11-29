@@ -155,6 +155,7 @@ public class ManufacturerTest extends Agent
 							Sell order = (Sell)action;
 							
 							Item it = order.getItem();
+							ArrayList<Integer> details = order.getDetails();
 							
 							// Printing PC name to demo Ontology
 							if(it instanceof PC)
@@ -163,8 +164,6 @@ public class ManufacturerTest extends Agent
 								
 								
 								System.out.println("Manufacturer Received Customer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " ]");
-								
-								
 								
 								// Placing Order with Supplier (Needs to be put into a separate behaviour)
 								
@@ -181,6 +180,7 @@ public class ManufacturerTest extends Agent
 								Sell manufacturerOrder = new Sell();
 								manufacturerOrder.setCustomer(myAgent.getAID());
 								manufacturerOrder.setItem(pc);
+								manufacturerOrder.setDetails(details);
 								
 								// Sending Message to Manufacturer
 								// IMPORTANT: Set up this way due to FIPA, otherwise we get an exception (crash)
