@@ -12,6 +12,7 @@ import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -39,6 +40,10 @@ public class Supplier extends Agent
 	private AID manufacturerAgent;
 	
 	int totalPrice = 0;
+	ArrayList<Integer> orderDetails;
+	int currentDay;
+	int price;
+	int dueInDays;
 
 	protected void setup()
 	{
@@ -147,8 +152,9 @@ public class Supplier extends Agent
 
 							Item it = order.getItem();
 							
-							
-
+							dueInDays = order.getDueInDays();
+							price = order.getPrice();
+							currentDay = order.getCurrentDay();
 							// Printing PC name to demo Ontology
 							if(it instanceof PC)
 							{
@@ -157,8 +163,9 @@ public class Supplier extends Agent
 								System.out.println("Supplier Received Manufacturer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " ]");
 								
 								// Testing output of details
-								System.out.println("Testing Order Details Extraction from Order: " + order.getDetails());
+								//System.out.println("Testing Order Details Extraction from Order: " + orderDetails);
 								
+								myAgent.addBehaviour(new SelectSupplier());
 								
 								doWait(2000);
 								
@@ -242,7 +249,51 @@ public class Supplier extends Agent
 	}
 
 
+	// Need to change to One Shot, same with DayComplete (One shot means runs once per day, doesn't refresh or need messages)
+	public class SelectSupplier extends OneShotBehaviour
+	{
 
+		@Override
+		public void action() 
+		{
+			// Creating booleans for each Supplier
+			boolean supplier1 = false;
+			boolean supplier2 = false;
+			boolean supplier3 = false;
+			// Variable for the selected Supplier
+			String selectedSupplier;
+			
+			int dueDate = currentDay + dueInDays;
+			
+			
+			// Scenario: currentDay = Day 1, dueDate = Day 5
+			// Supplier 1: WORK
+			// Supplier 2: WORK
+			// Supplier 3: WOULD NOT
+			
+			// if it's not due the next day, always picks Supplier 2. Need to work out how to differentiate them (price).
+			
+			if (currentDay + 1 == dueDate)
+			{
+				// Then Supplier 1
+				selectedSupplier = "Supplier 1";
+			}
+			else if (currentDay + 3 < dueDate)
+			{
+				selectedSupplier = "Supplier 2";
+			}
+			else
+			{
+				selectedSupplier = "Supplier 3";
+			}
+			
+			System.out.println("Selected Supplier = " + selectedSupplier);
+		}
+		
+	}
+	
+	
+	
 	private class SellBehaviour extends CyclicBehaviour
 	{
 		// Doubt I need this (need to copy the sellBehavior from Manufacturer, has unlimited stock so don't need to adjust it. Just need new ontology for it)

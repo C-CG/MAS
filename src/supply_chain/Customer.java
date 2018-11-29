@@ -235,7 +235,9 @@ public class Customer extends Agent
 			order.setCustomer(myAgent.getAID());
 			order.setItem(pc);
 			// need to add orderDetails here
-			order.setDetails(details);
+			order.setCurrentDay(dayNum);
+			order.setDueInDays(dueInDays);
+			order.setPrice(price);
 
 			// Sending Message to Manufacturer
 			// IMPORTANT: Set up this way due to FIPA, otherwise we get an exception (crash)
@@ -253,9 +255,7 @@ public class Customer extends Agent
 				
 				// Testing the Set/Get of PC Components
 				//System.out.println("Get components: " + pc.getComponents().get(0).getRam());
-				
-				// Testing output of details
-				//System.out.println("Testing Order Details Extraction from order: " + order.getDetails());
+
 				
 				// Add order details to "Sell order"
 				

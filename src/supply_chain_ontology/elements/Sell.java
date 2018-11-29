@@ -9,6 +9,9 @@ public class Sell implements AgentAction
 	private AID customer;
 	private Item item;
 	private java.util.ArrayList<Integer> details;
+	private int dayNum;
+	private int dueInDays;
+	private int price;
 	
 	public AID getCustomer()
 	{
@@ -30,14 +33,34 @@ public class Sell implements AgentAction
 		this.item = item;
 	}
 	
-	public java.util.ArrayList<Integer> getDetails()
+	public int getCurrentDay()
 	{
-		return details;
+		return dayNum;
 	}
 	
-	public void setDetails(java.util.ArrayList<Integer> details)
+	public void setCurrentDay(int dayNum)
 	{
-		this.details = details;
+		this.dayNum = dayNum;
+	}
+	
+	public int getDueInDays()
+	{
+		return dueInDays;
+	}
+	
+	public void setDueInDays(int dueInDays)
+	{
+		this.dueInDays = dueInDays;
+	}
+	
+	public int getPrice()
+	{
+		return price;
+	}
+	
+	public void setPrice(int price)
+	{
+		this.price = price;
 	}
 	
 	

@@ -45,6 +45,8 @@ public class ManufacturerTest extends Agent
 	// See if we are able to count the number of certain components from the list (Will be used for stock checking, once order has been delivered)
 	int desktopCPUCount = 0;
 	
+	public int dayNum = 1;
+	
 	protected void setup() 
 	{
 		// Register the Agent in the Directory
@@ -155,8 +157,10 @@ public class ManufacturerTest extends Agent
 							Sell order = (Sell)action;
 							
 							Item it = order.getItem();
-							ArrayList<Integer> details = order.getDetails();
+							int dueInDays = order.getDueInDays();
+							int price = order.getPrice();
 							
+							System.out.println("Price: " + price + " Due: " + dueInDays);
 							// Printing PC name to demo Ontology
 							if(it instanceof PC)
 							{
@@ -180,7 +184,9 @@ public class ManufacturerTest extends Agent
 								Sell manufacturerOrder = new Sell();
 								manufacturerOrder.setCustomer(myAgent.getAID());
 								manufacturerOrder.setItem(pc);
-								manufacturerOrder.setDetails(details);
+								manufacturerOrder.setCurrentDay(dayNum);
+								manufacturerOrder.setDueInDays(dueInDays);
+								manufacturerOrder.setPrice(price);
 								
 								// Sending Message to Manufacturer
 								// IMPORTANT: Set up this way due to FIPA, otherwise we get an exception (crash)
@@ -316,6 +322,7 @@ public class ManufacturerTest extends Agent
 			myAgent.send(tick);
 			// Remove Behaviour
 			myAgent.removeBehaviour(this);
+			++dayNum;
 			
 		}
 		
