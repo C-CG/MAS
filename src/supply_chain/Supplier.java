@@ -44,6 +44,9 @@ public class Supplier extends Agent
 	int currentDay;
 	int price;
 	int dueInDays;
+	
+	
+	// Customer Order
 
 	protected void setup()
 	{
@@ -167,9 +170,7 @@ public class Supplier extends Agent
 								
 								myAgent.addBehaviour(new SelectSupplier());
 								
-								doWait(2000);
-								
-								// Move this into it's own function (testing right now)
+								doWait(5000);
 								
 								int motherboard = 0;
 								int cpu = 0;
@@ -177,56 +178,149 @@ public class Supplier extends Agent
 								int hdd = 0;
 								int screen = 0;
 								int os = 0;
-								int delivery = 1;
+								int dueDate = currentDay + dueInDays;
+								SelectSupplier supplier = new SelectSupplier();
+								int selectedSupplier = supplier.returnSupplier();
+								System.out.println("Supplier: " + selectedSupplier);
 								
-								
-								
-								// Only testing Supplier 1
-								if (pc.getName().equals("Desktop"))
+								// change to cases
+								if (selectedSupplier == 1)
 								{
-									motherboard = 75;
-									cpu = 150;
-									screen = 0;
+									if (pc.getName().equals("Desktop"))
+									{
+										motherboard = 75;
+										cpu = 150;
+										screen = 0;
+									}
+									else
+									{
+										motherboard = 125;
+										cpu = 200;
+										screen = 100;
+									}
+									
+									
+									if (pc.getComponents().get(0).getHD().equals("1Tb"))
+									{
+										hdd = 50;
+									}
+									else
+									{
+										hdd = 75;
+									}
+									
+									if (pc.getComponents().get(0).getRam().equals("8Gb"))
+									{
+										ram = 50;
+									}
+									else
+									{
+										ram = 90;
+									}
+									
+									if (pc.getComponents().get(0).getOS().equals("Windows"))
+									{
+										os = 75;
+									}
+									else
+									{
+										os = 0;
+									}
+									
+									totalPrice = motherboard + cpu + screen + hdd + ram + os;
 								}
-								else
+								else if (selectedSupplier == 2)
 								{
-									motherboard = 125;
-									cpu = 200;
-									screen = 100;
+									if (pc.getName().equals("Desktop"))
+									{
+										motherboard = 60;
+										cpu = 130;
+										screen = 0;
+									}
+									else
+									{
+										motherboard = 115;
+										cpu = 175;
+										screen = 80;
+									}
+									
+									
+									if (pc.getComponents().get(0).getHD().equals("1Tb"))
+									{
+										hdd = 45;
+									}
+									else
+									{
+										hdd = 65;
+									}
+									
+									if (pc.getComponents().get(0).getRam().equals("8Gb"))
+									{
+										ram = 40;
+									}
+									else
+									{
+										ram = 80;
+									}
+									
+									if (pc.getComponents().get(0).getOS().equals("Windows"))
+									{
+										os = 75;
+									}
+									else
+									{
+										os = 0;
+									}
+									
+									totalPrice = motherboard + cpu + screen + hdd + ram + os;	
+								}
+								else if (selectedSupplier == 3)
+								{
+									if (pc.getName().equals("Desktop"))
+									{
+										motherboard = 50;
+										cpu = 110;
+										screen = 0;
+									}
+									else
+									{
+										motherboard = 95;
+										cpu = 150;
+										screen = 60;
+									}
+									
+									
+									if (pc.getComponents().get(0).getHD().equals("1Tb"))
+									{
+										hdd = 35;
+									}
+									else
+									{
+										hdd = 55;
+									}
+									
+									if (pc.getComponents().get(0).getRam().equals("8Gb"))
+									{
+										ram = 30;
+									}
+									else
+									{
+										ram = 70;
+									}
+									
+									if (pc.getComponents().get(0).getOS().equals("Windows"))
+									{
+										os = 75;
+									}
+									else
+									{
+										os = 0;
+									}
+									
+									totalPrice = motherboard + cpu + screen + hdd + ram + os;
 								}
 								
-								
-								if (pc.getComponents().get(0).getHD().equals("1Tb"))
-								{
-									hdd = 50;
-								}
-								else
-								{
-									hdd = 75;
-								}
-								
-								if (pc.getComponents().get(0).getRam().equals("8Gb"))
-								{
-									ram = 50;
-								}
-								else
-								{
-									ram = 90;
-								}
-								
-								if (pc.getComponents().get(0).getOS().equals("Windows"))
-								{
-									os = 75;
-								}
-								else
-								{
-									os = 0;
-								}
-								
-								totalPrice = motherboard + cpu + screen + hdd + ram + os;
-								
-								System.out.println("Supplier 1: " + delivery + " Day/s " +  "Price: " + "£" + totalPrice);
-								
+								System.out.println("Supplier: " + selectedSupplier + " Due Date: " + dueDate  +  " Price: " + "Â£" + totalPrice);
 								myAgent.addBehaviour(new DayComplete(myAgent));
 
 							}
@@ -251,45 +345,38 @@ public class Supplier extends Agent
 
 	// Need to change to One Shot, same with DayComplete (One shot means runs once per day, doesn't refresh or need messages)
 	public class SelectSupplier extends OneShotBehaviour
-	{
-
+	{		
+		public int selectedSupplier;
 		@Override
 		public void action() 
 		{
-			// Creating booleans for each Supplier
-			boolean supplier1 = false;
-			boolean supplier2 = false;
-			boolean supplier3 = false;
-			// Variable for the selected Supplier
-			String selectedSupplier;
-			
-			int dueDate = currentDay + dueInDays;
-			
-			
-			// Scenario: currentDay = Day 1, dueDate = Day 5
-			// Supplier 1: WORK
-			// Supplier 2: WORK
-			// Supplier 3: WOULD NOT
-			
-			// if it's not due the next day, always picks Supplier 2. Need to work out how to differentiate them (price).
-			
-			if (currentDay + 1 == dueDate)
-			{
-				// Then Supplier 1
-				selectedSupplier = "Supplier 1";
-			}
-			else if (currentDay + 3 < dueDate)
-			{
-				selectedSupplier = "Supplier 2";
-			}
-			else
-			{
-				selectedSupplier = "Supplier 3";
-			}
-			
-			System.out.println("Selected Supplier = " + selectedSupplier);
+			returnSupplier();
 		}
 		
+		public int returnSupplier()
+		{
+			
+			int dueDate = currentDay + dueInDays;
+	
+			// if it's not due the next day, always picks Supplier 2. Need to work out how to differentiate them (price).
+			
+			if (currentDay + 1 == dueDate || currentDay + 2 == dueDate)
+			{
+				// Then Supplier 1
+				selectedSupplier = 1;
+			}
+			else if (currentDay + 3 == dueDate || currentDay + 4 == dueDate || currentDay + 5 == dueDate || currentDay + 6 == dueDate )
+			{
+				selectedSupplier = 2;
+			}
+			else if (currentDay + 7 == dueDate || currentDay + 8 == dueDate || currentDay + 9 == dueDate || currentDay + 10 == dueDate)
+			{
+				selectedSupplier = 3;
+			}
+			
+			return selectedSupplier;
+			
+		}
 	}
 	
 	

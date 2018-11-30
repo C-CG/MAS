@@ -160,7 +160,6 @@ public class ManufacturerTest extends Agent
 							int dueInDays = order.getDueInDays();
 							int price = order.getPrice();
 							
-							System.out.println("Price: " + price + " Due: " + dueInDays);
 							// Printing PC name to demo Ontology
 							if(it instanceof PC)
 							{

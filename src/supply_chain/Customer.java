@@ -249,7 +249,7 @@ public class Customer extends Agent
 				// Output to Console
 				System.out.println("Customer Placing Order...");
 				doWait(2000);
-				System.out.println("Customer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " " + c.getRam() + " " + c.getHD() + " " + c.getOS() + " ]" + " Due: " + dueInDays + " days" +" Price: £" + price);
+				System.out.println("Customer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " " + c.getRam() + " " + c.getHD() + " " + c.getOS() + " ]" + " Due: " + dueInDays + " days" +" Price: Â£" + price);
 				// Maps Order Number to due days e.g. 1 7
 				customerOrders.put(orderNum, dueInDays);
 				
