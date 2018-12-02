@@ -38,14 +38,17 @@ public class Supplier extends Agent
 	private AID tickerAgent;
 	private AID customerAgent;
 	private AID manufacturerAgent;
-	
+
 	int totalPrice = 0;
 	ArrayList<Integer> orderDetails;
 	int currentDay;
 	int price;
 	int dueInDays;
 	
-	
+	// Used to store all the orders received from the Customer Agent
+	HashMap<Integer, ArrayList<String>> customerOrders = new HashMap<Integer, ArrayList<String>>();
+
+
 	// Customer Order
 
 	protected void setup()
@@ -106,7 +109,7 @@ public class Supplier extends Agent
 				// Checking if the message received states a "new day", if so do work.
 				if(msg.getContent().equals("new day"))
 				{
-					
+
 					// Add Behaviour
 					myAgent.addBehaviour(new ReceiveOrder());
 				}
@@ -154,7 +157,7 @@ public class Supplier extends Agent
 							Sell order = (Sell)action;
 
 							Item it = order.getItem();
-							
+
 							dueInDays = order.getDueInDays();
 							price = order.getPrice();
 							currentDay = order.getCurrentDay();
@@ -164,14 +167,14 @@ public class Supplier extends Agent
 								PC pc = (PC)it;
 
 								System.out.println("Supplier Received Manufacturer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " ]");
-								
+
 								// Testing output of details
 								//System.out.println("Testing Order Details Extraction from Order: " + orderDetails);
-								
+
 								myAgent.addBehaviour(new SelectSupplier());
-								
+
 								doWait(5000);
-								
+
 								int motherboard = 0;
 								int cpu = 0;
 								int ram = 0;
@@ -182,7 +185,7 @@ public class Supplier extends Agent
 								SelectSupplier supplier = new SelectSupplier();
 								int selectedSupplier = supplier.returnSupplier();
 								System.out.println("Supplier: " + selectedSupplier);
-								
+
 								// change to cases
 								if (selectedSupplier == 1)
 								{
@@ -198,8 +201,8 @@ public class Supplier extends Agent
 										cpu = 200;
 										screen = 100;
 									}
-									
-									
+
+
 									if (pc.getComponents().get(0).getHD().equals("1Tb"))
 									{
 										hdd = 50;
@@ -208,7 +211,7 @@ public class Supplier extends Agent
 									{
 										hdd = 75;
 									}
-									
+
 									if (pc.getComponents().get(0).getRam().equals("8Gb"))
 									{
 										ram = 50;
@@ -217,7 +220,7 @@ public class Supplier extends Agent
 									{
 										ram = 90;
 									}
-									
+
 									if (pc.getComponents().get(0).getOS().equals("Windows"))
 									{
 										os = 75;
@@ -226,7 +229,7 @@ public class Supplier extends Agent
 									{
 										os = 0;
 									}
-									
+
 									totalPrice = motherboard + cpu + screen + hdd + ram + os;
 								}
 								else if (selectedSupplier == 2)
@@ -243,8 +246,8 @@ public class Supplier extends Agent
 										cpu = 175;
 										screen = 80;
 									}
-									
-									
+
+
 									if (pc.getComponents().get(0).getHD().equals("1Tb"))
 									{
 										hdd = 45;
@@ -253,7 +256,7 @@ public class Supplier extends Agent
 									{
 										hdd = 65;
 									}
-									
+
 									if (pc.getComponents().get(0).getRam().equals("8Gb"))
 									{
 										ram = 40;
@@ -262,7 +265,7 @@ public class Supplier extends Agent
 									{
 										ram = 80;
 									}
-									
+
 									if (pc.getComponents().get(0).getOS().equals("Windows"))
 									{
 										os = 75;
@@ -271,7 +274,7 @@ public class Supplier extends Agent
 									{
 										os = 0;
 									}
-									
+
 									totalPrice = motherboard + cpu + screen + hdd + ram + os;	
 								}
 								else if (selectedSupplier == 3)
@@ -288,8 +291,8 @@ public class Supplier extends Agent
 										cpu = 150;
 										screen = 60;
 									}
-									
-									
+
+
 									if (pc.getComponents().get(0).getHD().equals("1Tb"))
 									{
 										hdd = 35;
@@ -298,7 +301,7 @@ public class Supplier extends Agent
 									{
 										hdd = 55;
 									}
-									
+
 									if (pc.getComponents().get(0).getRam().equals("8Gb"))
 									{
 										ram = 30;
@@ -307,7 +310,7 @@ public class Supplier extends Agent
 									{
 										ram = 70;
 									}
-									
+
 									if (pc.getComponents().get(0).getOS().equals("Windows"))
 									{
 										os = 75;
@@ -316,11 +319,61 @@ public class Supplier extends Agent
 									{
 										os = 0;
 									}
-									
+
 									totalPrice = motherboard + cpu + screen + hdd + ram + os;
 								}
 								
+								// Need to create a list to store PC Specs, price and dueDate (-1 ??)
+								ArrayList<String> orders = new ArrayList<String>();
+								
+								// Converting Int Values to Strings to be stored in the List (orders)
+								String due = Integer.toString(dueDate);
+								String cost = Integer.toString(totalPrice);
+								String day = Integer.toString(currentDay);
+								// List Order Details
+								orders.add(due);
+								orders.add(cost);
+								// List Components
+								orders.add(pc.getComponents().get(0).getCPU());
+								orders.add(pc.getComponents().get(0).getMotherboard());
+								orders.add(pc.getComponents().get(0).getRam());
+								orders.add(pc.getComponents().get(0).getHD());
+								orders.add(pc.getComponents().get(0).getOS());
+								
+								
+								
+								// Mapping these List Values to a key
+								customerOrders.put(pc.getOrderNumber(), orders);
+								
+								// Testing output (works fine)
+								System.out.println("Order Tracking Supplier: " + customerOrders);
+								
 								System.out.println("Supplier: " + selectedSupplier + " Due Date: " + dueDate  +  " Price: " + "£" + totalPrice);
+								
+								// Now need to loop through the list and retrieve the order number/due date
+								// if the due date = the current day, then sell order the matching pc to the manufacturer
+								// ^ would be in the SellBehaviour class myAgent.addBehaviour(new SellBehaviour(myAgent));
+								// for loop with an if inside
+								// Testing output
+								
+								int orderNum = 1;
+								
+								for (int i=0; i < customerOrders.size(); i++)
+								{
+									
+									// Add if statement in here
+									if (customerOrders.get(orderNum).get(0).equals(day))
+									{
+										System.out.println("ORDER SENT: " + customerOrders.get(orderNum));
+										
+										// ADD MESSAGE SEND HERE
+									}
+									else
+									{
+										orderNum++;
+									}
+								}
+								
 								myAgent.addBehaviour(new DayComplete(myAgent));
 
 							}
@@ -352,14 +405,14 @@ public class Supplier extends Agent
 		{
 			returnSupplier();
 		}
-		
+
 		public int returnSupplier()
 		{
-			
+
 			int dueDate = currentDay + dueInDays;
-	
+
 			// if it's not due the next day, always picks Supplier 2. Need to work out how to differentiate them (price).
-			
+
 			if (currentDay + 1 == dueDate || currentDay + 2 == dueDate)
 			{
 				// Then Supplier 1
@@ -373,14 +426,14 @@ public class Supplier extends Agent
 			{
 				selectedSupplier = 3;
 			}
-			
+
 			return selectedSupplier;
-			
+
 		}
 	}
-	
-	
-	
+
+
+
 	private class SellBehaviour extends CyclicBehaviour
 	{
 		// Doubt I need this (need to copy the sellBehavior from Manufacturer, has unlimited stock so don't need to adjust it. Just need new ontology for it)
@@ -390,25 +443,61 @@ public class Supplier extends Agent
 		}
 
 		@Override
-		public void action() {
+		public void action() 
+		{
 
-			// Responds to Customer REQUEST messages only
-			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
-			ACLMessage msg = receive(mt);
+			// Preparing the request message
+			ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 
-			if (msg !=null)
+			// Set receiver to Manufacturer Agent
+			msg.addReceiver(manufacturerAgent);
+			msg.setLanguage(codec.getName());
+			msg.setOntology(ontology.getName()); 
+			
+			// Order, sets Buyer and what Item they want
+			Sell order = new Sell();
+			order.setCustomer(manufacturerAgent);
+			// need to return PC or take it from list
+			//order.setItem(pc);
+			// Order details used for queries
+			order.setCurrentDay(currentDay);
+			order.setDueInDays(dueInDays);
+			order.setPrice(totalPrice);
+
+			// Sending Message to Manufacturer
+			// IMPORTANT: Set up this way due to FIPA, otherwise we get an exception (crash)
+			Action request = new Action();
+			request.setAction(order);
+			request.setActor(manufacturerAgent); // the agent that you request to perform the action
+			try 
 			{
-				// Checking if the message received states a "order", if so do work.
+				// Output to Console
+				System.out.println("PC being sent to Manufacturer...");
+				doWait(2000);
+				
+				System.out.println("TESTING SUPPLIER SELL BEHAVIOUR: " + customerOrders.get(0));
+				
+				doWait(2000);
+				
+				// Let JADE convert from Java objects to string
+				getContentManager().fillContent(msg, request); //send the wrapper object
+				send(msg);
 
-				// Add Behaviours (instead of this print, we need the actual order)
-				System.out.println("Supplier Received Order.");
-				// Add Behaviour "dayComplete behaviour"
-				myAgent.addBehaviour(new DayComplete(myAgent));
 			}
-			else
+			catch (CodecException ce) 
 			{
-				block();
+				ce.printStackTrace();
 			}
+			catch (OntologyException oe) 
+			{
+				oe.printStackTrace();
+			} 
+
+			// Order Complete which means the Day is done for the Supplier Agent
+			addBehaviour(new DayComplete(myAgent));
+			// Remove Behaviour
+			myAgent.removeBehaviour(this);
+
 
 		}
 
@@ -427,7 +516,7 @@ public class Supplier extends Agent
 		{
 			//reset totalPrice
 			totalPrice = 0;
-			
+
 			// Finished "working" for the Day, relay message to Ticker Agent
 			ACLMessage tick = new ACLMessage(ACLMessage.INFORM);
 			tick.setContent("done");
