@@ -348,7 +348,7 @@ public class Supplier extends Agent
 								// Testing output (works fine)
 								System.out.println("Order Tracking Supplier: " + customerOrders);
 								
-								System.out.println("Supplier: " + selectedSupplier + " Due Date: " + dueDate  +  " Price: " + "Â£" + totalPrice);
+								System.out.println("Supplier: " + selectedSupplier + " Due Date: " + dueDate  +  " Price: " + "£" + totalPrice);
 								
 								// Now need to loop through the list and retrieve the order number/due date
 								// if the due date = the current day, then sell order the matching pc to the manufacturer
@@ -364,15 +364,18 @@ public class Supplier extends Agent
 									// Add if statement in here
 									if (customerOrders.get(orderNum).get(0).equals(day))
 									{
-										System.out.println("ORDER SENT: " + customerOrders.get(orderNum));
-										
-										// ADD MESSAGE SEND HERE
+										System.out.println("ORDER SENT TO MANUFACTURER " + customerOrders.get(orderNum));	
 									}
 									else
 									{
 										orderNum++;
 									}
 								}
+								// ADD MESSAGE SEND HERE
+								//System.out.println("Testing to see if it saves PC: " + customerOrders.get(orderNum)); Prints the correct PC, so we know we can get those details here
+								
+								
+								
 								
 								myAgent.addBehaviour(new DayComplete(myAgent));
 

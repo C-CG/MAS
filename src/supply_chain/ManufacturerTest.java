@@ -49,6 +49,9 @@ public class ManufacturerTest extends Agent
 	
 	protected void setup() 
 	{
+		getContentManager().registerLanguage(codec);
+		getContentManager().registerOntology(ontology);
+		
 		// Register the Agent in the Directory
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
@@ -71,11 +74,6 @@ public class ManufacturerTest extends Agent
 			e.printStackTrace();
 		}
 		
-		
-		// Look into what these do
-		getContentManager().registerLanguage(codec);
-		getContentManager().registerOntology(ontology);
-
 		// Add Behaviours
 		addBehaviour(new TickerWaiter(this));
 	}
@@ -173,7 +171,7 @@ public class ManufacturerTest extends Agent
 								// Preparing the request message
 								ACLMessage msg2 = new ACLMessage(ACLMessage.REQUEST);
 
-								// Set receiver to Manufacturer Agent
+								// Set receiver to Supplier Agent
 								msg2.addReceiver(supplierAgent);
 								msg2.setLanguage(codec.getName());
 								msg2.setOntology(ontology.getName()); 
@@ -187,7 +185,7 @@ public class ManufacturerTest extends Agent
 								manufacturerOrder.setDueInDays(dueInDays);
 								manufacturerOrder.setPrice(price);
 								
-								// Sending Message to Manufacturer
+								// Sending Message to Supplier
 								// IMPORTANT: Set up this way due to FIPA, otherwise we get an exception (crash)
 								Action request = new Action();
 								request.setAction(manufacturerOrder);
@@ -253,7 +251,7 @@ public class ManufacturerTest extends Agent
 								
 								// Order Complete which means the Day is done for the Manufacturer Agent
 								++orderNum;
-								addBehaviour(new DayComplete(myAgent));
+								addBehaviour(new StockCheck(myAgent));
 								// Remove Behaviour
 								myAgent.removeBehaviour(this);
 							}
@@ -278,12 +276,46 @@ public class ManufacturerTest extends Agent
 	public class StockCheck extends CyclicBehaviour
 	{
 
-		@Override
-		public void action() {
-			// TODO Auto-generated method stub
-			
+		public StockCheck(Agent a)
+		{
+			super(a);
 		}
 		
+		@Override
+		public void action() 
+		{
+			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchContent("order"), MessageTemplate.MatchContent("no-order"));
+			ACLMessage msg = myAgent.receive(mt);
+			
+			if (msg != null)
+			{
+				System.out.println("MESSAGE RECEIVED FROM SUPPLIER.");
+				
+				if(supplierAgent == null)
+				{
+					supplierAgent = msg.getSender();
+				}
+				
+				if(msg.getContent().equals("order"))
+				{
+					System.out.println("Received Components from Supplier: " + msg.getContent());
+				}
+				else if (msg.getContent().equals("no-order"))
+				{
+					System.out.println("No Components received today.");
+				}
+				else
+				{
+					System.out.println("NO MESSAGE RECEIVED.");
+				}
+				
+				addBehaviour(new DayComplete(myAgent));
+			}
+			else
+			{
+				block();
+			}	
+		}	
 	}
 	
 	
