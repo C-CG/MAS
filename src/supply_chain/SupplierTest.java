@@ -375,19 +375,9 @@ public class SupplierTest extends Agent
 									// Add if statement in here
 									if (customerOrders.get(orderNum).get(0).equals(day))
 									{
-										// go through the list and match the components, if they match ++
-										// Testing right now, so just sending a message with CPU = 1
-										cpuSent = 1;
-
-										
-										sold.setContent("order");
-										
-										//System.out.println("Components sent to Manufacturer...");
-										send(sold);
-										break;
 										
 										//System.out.println("ORDER SENT TO MANUFACTURER " + customerOrders.get(orderNum));
-										/*
+										
 										// Create a new PC to store these components in (from customerOrders list)
 										PC soldPC = new PC();
 										ArrayList<Components> soldComponents = new ArrayList<Components>();
@@ -409,12 +399,12 @@ public class SupplierTest extends Agent
 										soldComponents.add(soldC);
 										soldPC.setComponents(soldComponents);
 
-										// Preparing the message to Manufacturer
-										ACLMessage sold = new ACLMessage(ACLMessage.REQUEST);
 										// Set receive to Manufacturer Agent
+										sold.setContent("order");
 										sold.addReceiver(manufacturerAgent);
 										sold.setLanguage(codec.getName());
 										sold.setOntology(ontology.getName());
+										sold.setConversationId("new order");
 
 										// Order
 										Sell soldOrder = new Sell();
@@ -434,11 +424,10 @@ public class SupplierTest extends Agent
 
 										try
 										{
-											System.out.println("Sending PC to Manufacturer...");
-											doWait(2000);
-
 											getContentManager().fillContent(sold, request);
+											System.out.println("Sending PC to Manufacturer: ID: " + sold.getConversationId());
 											send(sold);
+											break;
 
 										}
 
@@ -450,18 +439,17 @@ public class SupplierTest extends Agent
 										{
 											oe.printStackTrace();
 										} 
-										*/
+										
 									}
 									else
 									{
 										orderNum++;
 									}
 								}
-								
+								doWait(5000);
 								sold.setContent("no-order");
 								send(sold);
-								//System.out.println("No Components sent to Manufacturer...");
-								doWait(2000);
+								System.out.println("No Components sent to Manufacturer...");
 								myAgent.addBehaviour(new DayComplete(myAgent));
 								// Remove Behaviour
 								myAgent.removeBehaviour(this);
