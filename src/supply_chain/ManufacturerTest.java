@@ -40,6 +40,8 @@ public class ManufacturerTest extends Agent
 
 	// HashMap / list to map an order/components (Used for the building of a PC)
 	HashMap<Integer, ArrayList<String>> customerOrders = new HashMap<Integer, ArrayList<String>>();
+	
+	HashMap<Integer, ArrayList<String>> stockLevel = new HashMap<Integer, ArrayList<String>>();
 	// order variable to track number of orders
 	int orderNum = 1;
 	// See if we are able to count the number of certain components from the list (Will be used for stock checking, once order has been delivered)
@@ -229,28 +231,8 @@ public class ManufacturerTest extends Agent
 								customerOrders.put(pc.getOrderNumber(), orders);
 
 								// Testing output
-								System.out.println("Order Tracking: " + customerOrders);
-
-
-
-								//System.out.println(customerOrders.size());
-
-
-								if (customerOrders.get(orderNum).get(0).equals("desktopCPU"))
-								{
-									++desktopCPUCount;
-								}
-								else
-								{
-									// nothing
-								}
-
-
-								System.out.println("Counting Desktop CPU's: " + desktopCPUCount);
-
-
-								// Order Complete which means the Day is done for the Manufacturer Agent
-								++orderNum;
+								//System.out.println("Order Tracking: " + customerOrders);
+								
 								addBehaviour(new StockCheck(myAgent));
 								// Remove Behaviour
 								myAgent.removeBehaviour(this);
@@ -287,10 +269,20 @@ public class ManufacturerTest extends Agent
 			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchConversationId("new order"), MessageTemplate.MatchContent("no-order"));
 			ACLMessage msg = myAgent.receive(mt);
 
+			int desktopCPUStock = 0;
+			int laptopCPUStock = 0;
+			int desktopMotherboardStock = 0;
+			int laptopMotherboardStock = 0;
+			int ram8GbStock = 0;
+			int ram16GbStock = 0;
+			int hd1TbStock = 0;
+			int hd2TbStock = 0;
+			int screenStock = 0;
+			int windowsOsStock = 0;
+			int linuxOsStock = 0;
+			
 			if (msg != null)
 			{
-				System.out.println("MESSAGE RECEIVED FROM SUPPLIER.");
-
 				if(supplierAgent == null)
 				{
 					supplierAgent = msg.getSender();
@@ -299,7 +291,7 @@ public class ManufacturerTest extends Agent
 				
 				if (msg.getContent().equals("no-order"))
 				{
-					System.out.println("No Components received today.");
+					//System.out.println("No Components received today.");
 				}
 				else
 				{
@@ -326,14 +318,88 @@ public class ManufacturerTest extends Agent
 							if(it instanceof PC)
 							{
 								PC pc = (PC)it;
-								System.out.println("PC Received from Supplier: " + "Order Num: " + pc.getOrderNumber());
 								// Add the components from this to a list, then run the StockCheck like desktopCPU count
+								ArrayList<String> stock = new ArrayList<String>();
+
+								// Stock List
+								//orders.add(pc.getComponents().get(0).getCPU());
+								stock.add(pc.getComponents().get(0).getCPU());
+								stock.add(pc.getComponents().get(0).getMotherboard());
+								stock.add(pc.getComponents().get(0).getRam());
+								stock.add(pc.getComponents().get(0).getHD());
+								stock.add(pc.getComponents().get(0).getOS());
+								
+								// Mapping these List Values to a key
+								stockLevel.put(pc.getOrderNumber(), stock);
+								
+								orderNum = 1;
+								
+								// CPU
+								if (stockLevel.get(orderNum).get(0).equals("desktopCPU"))
+								{
+									++desktopCPUStock;
+								}
+								else if (stockLevel.get(orderNum).get(0).equals("laptopCPU"))
+								{
+									++laptopCPUStock;
+								}
+								
+								// Motherboard
+								if (stockLevel.get(orderNum).get(1).equals("desktopMotherboard"))
+								{
+									++desktopMotherboardStock;
+								}
+								else if (stockLevel.get(orderNum).get(1).equals("laptopMotherboard"))
+								{
+									++laptopMotherboardStock;
+								}
+								
+								// RAM
+								if (stockLevel.get(orderNum).get(2).equals("8Gb"))
+								{
+									++ram8GbStock;
+								}
+								else if (stockLevel.get(orderNum).get(2).equals("16Gb"))
+								{
+									++ram16GbStock;
+								}
+								
+								//HDD
+								if (stockLevel.get(orderNum).get(3).equals("1Tb"))
+								{
+									++hd1TbStock;
+								}
+								if (stockLevel.get(orderNum).get(3).equals("2Tb"))
+								{
+									++hd2TbStock;
+								}
+								
+								//Screen (Check if added)
+								
+								//OS
+								if (stockLevel.get(orderNum).get(4).equals("Windows"))
+								{
+									++windowsOsStock;
+								}
+								else if (stockLevel.get(orderNum).get(4).equals("Linux"))
+								{
+									++linuxOsStock;
+								}
+								
+								
+								// Order Complete which means the Day is done for the Manufacturer Agent
+								++orderNum;
+								
 							}
 						}
 						
 					}
 				}
-
+				
+				System.out.println("Stock Check: " + "Desktop CPU: " + desktopCPUStock + " Desktop Motherboard: " + desktopMotherboardStock + " Laptop CPU: " + laptopCPUStock + " Laptop Motherboard: " + laptopMotherboardStock
+				+ " Ram 8GB: " + ram8GbStock + " Ram 16GB: " + ram16GbStock + " HDD 1TB: " + hd1TbStock + " HDD 2TB: " + hd2TbStock + " Windows OS: " + windowsOsStock + " Linux OS: " + linuxOsStock);
+				
+				// After this begin new behaviour (delivery)
 				addBehaviour(new DayComplete(myAgent));
 			}
 			else

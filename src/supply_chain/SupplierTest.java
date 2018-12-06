@@ -187,7 +187,6 @@ public class SupplierTest extends Agent
 								int dueDate = currentDay + dueInDays;
 								SelectSupplier supplier = new SelectSupplier();
 								int selectedSupplier = supplier.returnSupplier();
-								System.out.println("Supplier: " + selectedSupplier);
 
 								// change to cases
 								if (selectedSupplier == 1)
@@ -350,9 +349,9 @@ public class SupplierTest extends Agent
 								customerOrders.put(pc.getOrderNumber(), orders);
 
 								// Testing output (works fine)
-								System.out.println("Order Tracking Supplier: " + customerOrders);
+								//System.out.println("Order Tracking Supplier: " + customerOrders);
 
-								System.out.println("Supplier: " + selectedSupplier + " Due Date: " + dueDate  +  " Price: " + "£" + totalPrice);
+								//System.out.println("Supplier: " + selectedSupplier + " Due Date: " + dueDate  +  " Price: " + "£" + totalPrice);
 
 								// Now need to loop through the list and retrieve the order number/due date
 								// if the due date = the current day, then sell order the matching pc to the manufacturer
@@ -420,12 +419,12 @@ public class SupplierTest extends Agent
 										request.setAction(soldOrder);
 										request.setActor(manufacturerAgent);
 										
-										System.out.println("Testing PC Part (soldPC): " + soldPC.getName());
+										//System.out.println("Testing PC Part (soldPC): " + soldPC.getName());
 
 										try
 										{
 											getContentManager().fillContent(sold, request);
-											System.out.println("Sending PC to Manufacturer: ID: " + sold.getConversationId());
+											//System.out.println("Sending PC to Manufacturer: ID: " + sold.getConversationId());
 											send(sold);
 											break;
 
@@ -449,7 +448,7 @@ public class SupplierTest extends Agent
 								doWait(5000);
 								sold.setContent("no-order");
 								send(sold);
-								System.out.println("No Components sent to Manufacturer...");
+								
 								myAgent.addBehaviour(new DayComplete(myAgent));
 								// Remove Behaviour
 								myAgent.removeBehaviour(this);

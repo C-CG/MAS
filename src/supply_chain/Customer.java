@@ -153,7 +153,10 @@ public class Customer extends Agent
 			int price;
 			int quantity;
 			
-			dueInDays = floor(1,10, rand);
+			// Change back to:
+			//dueInDays = floor(1,10, rand);
+			dueInDays = 1;
+			
 			price = floor(600,200,rand);
 			quantity = floor(1,10,rand);
 			
