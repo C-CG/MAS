@@ -380,8 +380,7 @@ public class Customer extends Agent
 							{
 								PC pc = (PC)it;
 								
-								System.out.println("PC Received Order Num: " + pc.getName() + " CPU: " + pc.getComponents().get(0).getCPU() + " Motherboard: " + pc.getComponents().get(0).getMotherboard() + " Ram: "
-								+ pc.getComponents().get(0).getRam() + " HD: " + pc.getComponents().get(0).getHD() + " OS: " + pc.getComponents().get(0).getOS());
+								System.out.println("PC Received Order Num: " + pc.getOrderNumber());
 							}
 						}
 					}
