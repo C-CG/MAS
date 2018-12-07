@@ -76,6 +76,8 @@ public class ManufacturerTest extends Agent
 			e.printStackTrace();
 		}
 
+		customerAgent = new AID("customer", AID.ISLOCALNAME);
+		
 		// Add Behaviours
 		addBehaviour(new TickerWaiter(this));
 	}
@@ -424,6 +426,9 @@ public class ManufacturerTest extends Agent
 
 				ArrayList<String> stock = new ArrayList<String>();
 				
+				ACLMessage send = new ACLMessage(ACLMessage.INFORM);
+				send.addReceiver(customerAgent);
+				
 				//System.out.println("Customer Order Test: " + customerOrders.get(1));
 				for (int i =1; i <= customerOrders.size(); ++i)
 				{
@@ -531,82 +536,69 @@ public class ManufacturerTest extends Agent
 						
 						System.out.println("ORDER IS ABLE TO BE SENT: " + customerOrders.get(i));
 						
-						/*
-						// CPU
-						if (customerOrders.get(i).get(0).equals("desktopCPU"))
-						{
-							++needDesktopCPU;
-						}
-						else if (customerOrders.get(i).get(0).equals("laptopCPU"))
-						{
-							++needLaptopCPU;
-						}
-
-						// Motherboard
-						if (customerOrders.get(i).get(1).equals("desktopMotherboard"))
-						{
-							++needDesktopMotherboard;
-						}
-						else if (customerOrders.get(i).get(1).equals("laptopMotherboard"))
-						{
-							++needLaptopMotherboard;
-						}
-
-						// Ram
-						if (customerOrders.get(i).get(2).equals("8Gb"))
-						{
-							++needRam8Gb;
-						}
-						else if (customerOrders.get(i).get(2).equals("16Gb"))
-						{
-							++needRam16Gb;
-						}
-
-						// HD
-						if (customerOrders.get(i).get(3).equals("1Tb"))
-						{
-							++needHD1Tb;
-						}
-						else if (customerOrders.get(i).get(3).equals("2Tb"))
-						{
-							++needHD2Tb;
-						}
-
-						// OS
-						if (customerOrders.get(i).get(4).equals("Linux"))
-						{
-							++needLinuxOs;
-						}
-						else if (customerOrders.get(i).get(4).equals("Windows"))
-						{
-							++needWindowsOs;
-						}
-
 						
-						// Need to figure out
+						
+						PC sendPC = new PC();
+						ArrayList<Components> sendComponents = new ArrayList<Components>();
+						Components sendC = new Components();
+						
+						sendPC.setName("Test"); // Name
+						sendPC.setOrderNumber(i); // Order Number
 
-						if (needDesktopCPU == 1 || needLaptopCPU == 1)
-						{	
-							// Add more if's here, somehow need to remove the values
-
-							if (needDesktopMotherboard == 1 || needLaptopCPU == 1)
-							{
-								if (needRam8Gb == 1 || needRam16Gb == 1)
-								{
-									if (needHD1Tb == 1 || needHD2Tb == 1)
-									{
-										if (needLinuxOs == 1 || needWindowsOs == 1)
-										{
-											System.out.println("PC IS ABLE TO BE SENT");
-										}
-									}
-								}
-							}
-
-						}		
-						*/
+						sendC.setCPU(customerOrders.get(i).get(0)); // CPU
+						sendC.setMotherboard(customerOrders.get(i).get(1)); // Motherboard
+						sendC.setRam(customerOrders.get(i).get(2)); //RAM
+						sendC.setHD(customerOrders.get(i).get(3)); //HD
+						sendC.setOS(customerOrders.get(i).get(4)); //OS
+						
+						// Need to add screen
+						sendC.setScreen(false);
+						
+						sendComponents.add(sendC);
+						sendPC.setComponents(sendComponents);
+						
+						// Set receive to Customer Agent
+						send.setContent("order");
+						// May need to change this to a local agent
+						send.addReceiver(customerAgent);
+						send.setLanguage(codec.getName());
+						send.setOntology(ontology.getName());
+						send.setConversationId("new order");
+						
+						// Order
+						Sell sendOrder = new Sell();
+						sendOrder.setCustomer(myAgent.getAID());
+						sendOrder.setItem(sendPC);
+						
+						// Sending Message to Manufacturer
+						Action request2 = new Action();
+						request2.setAction(sendOrder);
+						request2.setActor(customerAgent);
+						
+						System.out.println("PC: "+  sendPC.getName());
+						
+						try
+						{
+							getContentManager().fillContent(send, request2);
+							send(send);
+							send.reset();
+							System.out.println("Message sent to Customer");
+							break;
+						}
+						catch (CodecException ce2) 
+						{
+							ce2.printStackTrace();
+						}
+						catch (OntologyException oe) 
+						{
+							oe.printStackTrace();
+						} 
+						
 					}
 				}
+				send.setContent("no-order");
+				send(send);
+				
 				// Checking what Components I need
 				System.out.println("Needed Components: " + "Desktop CPU: " + needDesktopCPU + " Laptop CPU: " + needLaptopCPU + " Desktop Motherboard: " + needDesktopMotherboard + " Laptop Motherboard: " + needLaptopMotherboard
 						);

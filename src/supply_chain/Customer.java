@@ -337,28 +337,55 @@ public class Customer extends Agent
 		@Override
 		public void action() 
 		{
-			int dueDate;
-			// Gets the due date for the First Order
-			//dueDate = 1 + customerOrders.get(1);
-			// dueDate test working with the HashMap and ArrayList
-			dueDate = customerOrdersTest.get(1).get(0) + customerOrdersTest.get(1).get(1);
-		
-			/*
-			System.out.println("List: " + customerOrders);
-			System.out.println("Get Specific Item in List: " + customerOrders.get(1));
-			myAgent.removeBehaviour(this);
-			*/
-			// Works
-			//System.out.println("Due Date for Order 1: " + dueDate);
-			//System.out.println(dayNum);
-			if (dayNum == dueDate)
+			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchConversationId("new order"), MessageTemplate.MatchContent("no-order"));
+			ACLMessage msg = myAgent.receive(mt);
+			
+			if(msg !=null)
 			{
-				System.out.println("Order: 1 should be delivered.");
-				myAgent.removeBehaviour(this);
-			}
-			else
-			{
-				myAgent.removeBehaviour(this);
+				if(manufacturerAgent == null)
+				{
+					manufacturerAgent = msg.getSender();
+				}
+				
+				if (msg.getContent().equals("no-order"))
+				{
+					System.out.println("No orders received today.");
+				}
+				else if (msg.getConversationId().equals("new-order"))
+				{
+					ContentElement ce = null;
+
+					// JADE converts String to Java Object, Outputting it as a ContentElement
+					try 
+					{
+						ce = getContentManager().extractContent(msg);
+					} 
+					catch (CodecException | OntologyException e) 
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					if (ce instanceof Action)
+					{
+						Concept action = ((Action)ce).getAction();
+						
+						if (action instanceof Sell)
+						{
+							Sell order = (Sell)action;
+							
+							Item it = order.getItem();
+							
+							if (it instanceof PC)
+							{
+								PC pc = (PC)it;
+								
+								System.out.println("PC Received Order Num: " + pc.getName());
+							}
+						}
+					}
+				}
+					
 			}
 			
 		}
