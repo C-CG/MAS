@@ -268,7 +268,7 @@ public class ManufacturerTest extends Agent
 		{
 			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchConversationId("new order"), MessageTemplate.MatchContent("no-order"));
 			ACLMessage msg = myAgent.receive(mt);
-
+			
 			int desktopCPUStock = 0;
 			int laptopCPUStock = 0;
 			int desktopMotherboardStock = 0;
@@ -280,20 +280,21 @@ public class ManufacturerTest extends Agent
 			int screenStock = 0;
 			int windowsOsStock = 0;
 			int linuxOsStock = 0;
-			
+			// Seeing if time is the problem
+			doWait(5000);
 			if (msg != null)
 			{
 				if(supplierAgent == null)
 				{
 					supplierAgent = msg.getSender();
 				}
-
+				
 				
 				if (msg.getContent().equals("no-order"))
 				{
 					//System.out.println("No Components received today.");
 				}
-				else
+				else if (msg.getConversationId().equals("new order"))
 				{
 					ContentElement ce = null;
 
@@ -333,6 +334,8 @@ public class ManufacturerTest extends Agent
 								stockLevel.put(pc.getOrderNumber(), stock);
 								
 								orderNum = 1;
+								
+								System.out.println("PC Received Order Num: " + pc.getOrderNumber() + " CPU " + pc.getComponents().get(0).getCPU() + " RAM " + pc.getComponents().get(0).getRam());
 								
 								// CPU
 								if (stockLevel.get(orderNum).get(0).equals("desktopCPU"))
@@ -395,12 +398,45 @@ public class ManufacturerTest extends Agent
 						
 					}
 				}
+				else
+				{
+					System.out.println("RANDOM MESSAGE RECEIVED FROM SUPPLIER");
+				}
 				
 				System.out.println("Stock Check: " + "Desktop CPU: " + desktopCPUStock + " Desktop Motherboard: " + desktopMotherboardStock + " Laptop CPU: " + laptopCPUStock + " Laptop Motherboard: " + laptopMotherboardStock
 				+ " Ram 8GB: " + ram8GbStock + " Ram 16GB: " + ram16GbStock + " HDD 1TB: " + hd1TbStock + " HDD 2TB: " + hd2TbStock + " Windows OS: " + windowsOsStock + " Linux OS: " + linuxOsStock);
-				
 				// After this begin new behaviour (delivery)
+				// ^ For Loop that goes through, customerOrders and stockLevel
+				// See's if they contain the same stuff, if so send order
+				//System.out.println("Customer Orders Received: " + customerOrders);
+				
+				// Sets what components we need = 0, may make these global and -- when component has been used
+				int needDesktopCPU = 0;
+				int needLaptopCPU = 0;
+				
+				//System.out.println("Customer Order Test: " + customerOrders.get(1));
+				for (int i =1; i <= customerOrders.size(); ++i)
+				{
+					// Works, outputs each order order 1 = i(1), 2 = i(2)
+					System.out.println("I Value: " + i);
+					System.out.println("Customer Order: " + customerOrders.get(i));
+					
+					// Gets the CPU of the first order
+					if (customerOrders.get(i).get(0).equals("desktopCPU"))
+					{
+						++needDesktopCPU;
+					}
+					else if (customerOrders.get(i).get(0).equals("laptopCPU"))
+					{
+						++needLaptopCPU;
+					}
+					
+				}
+				
+				System.out.println("Needed Components: " + "Desktop CPU: " + needDesktopCPU + " Laptop CPU: " + needLaptopCPU);
+				
 				addBehaviour(new DayComplete(myAgent));
+				myAgent.removeBehaviour(this);
 			}
 			else
 			{

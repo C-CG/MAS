@@ -112,7 +112,7 @@ public class SupplierTest extends Agent
 				// Checking if the message received states a "new day", if so do work.
 				if(msg.getContent().equals("new day"))
 				{
-
+					
 					// Add Behaviour
 					myAgent.addBehaviour(new ReceiveOrder());
 				}
@@ -351,7 +351,7 @@ public class SupplierTest extends Agent
 								// Testing output (works fine)
 								//System.out.println("Order Tracking Supplier: " + customerOrders);
 
-								//System.out.println("Supplier: " + selectedSupplier + " Due Date: " + dueDate  +  " Price: " + "£" + totalPrice);
+								//System.out.println("Supplier: " + selectedSupplier + " Due Date: " + dueDate  +  " Price: " + "ï¿½" + totalPrice);
 
 								// Now need to loop through the list and retrieve the order number/due date
 								// if the due date = the current day, then sell order the matching pc to the manufacturer
@@ -368,7 +368,7 @@ public class SupplierTest extends Agent
 								sold.addReceiver(manufacturerAgent);
 								
 								
-								for (int i=0; i < customerOrders.size(); i++)
+								for (int i=0; i < customerOrders.size(); ++i)
 								{
 
 									// Add if statement in here
@@ -426,6 +426,8 @@ public class SupplierTest extends Agent
 											getContentManager().fillContent(sold, request);
 											//System.out.println("Sending PC to Manufacturer: ID: " + sold.getConversationId());
 											send(sold);
+											sold.reset();
+											System.out.println("Message from Supplier: " + msg.getContent());
 											break;
 
 										}
@@ -445,7 +447,6 @@ public class SupplierTest extends Agent
 										orderNum++;
 									}
 								}
-								doWait(5000);
 								sold.setContent("no-order");
 								send(sold);
 								
