@@ -169,7 +169,7 @@ public class SupplierTest extends Agent
 							{
 								PC pc = (PC)it;
 
-								System.out.println("Supplier Received Manufacturer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " ]");
+								System.out.println("Supplier Received Manufacturer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " Screen: " + pc.getComponents().get(0).getScreen() + " ]");
 
 								// Testing output of details
 								//System.out.println("Testing Order Details Extraction from Order: " + orderDetails);
@@ -332,6 +332,7 @@ public class SupplierTest extends Agent
 								String due = Integer.toString(dueDate);
 								String cost = Integer.toString(totalPrice);
 								String day = Integer.toString(currentDay);
+								String screen2 = String.valueOf(pc.getComponents().get(0).getScreen());
 								// List Order Details
 								orders.add(due);
 								orders.add(cost);
@@ -342,9 +343,9 @@ public class SupplierTest extends Agent
 								orders.add(pc.getComponents().get(0).getRam());
 								orders.add(pc.getComponents().get(0).getHD());
 								orders.add(pc.getComponents().get(0).getOS());
+								orders.add(screen2);
 
-
-
+								System.out.println("Supplier Test Screen: " + screen2);
 								// Mapping these List Values to a key
 								customerOrders.put(pc.getOrderNumber(), orders);
 
@@ -381,7 +382,9 @@ public class SupplierTest extends Agent
 										PC soldPC = new PC();
 										ArrayList<Components> soldComponents = new ArrayList<Components>();
 										Components soldC = new Components();
-
+										// Converting the Screen to a Bool
+										Boolean screenBool = Boolean.valueOf(customerOrders.get(orderNum).get(8));
+										
 										// Adding the various components to the "Sold PC"
 										soldPC.setName(customerOrders.get(orderNum).get(2)); // Name
 										soldPC.setOrderNumber(orderNum); // Order Number
@@ -392,7 +395,7 @@ public class SupplierTest extends Agent
 										soldC.setHD(customerOrders.get(orderNum).get(6)); //HD
 										soldC.setOS(customerOrders.get(orderNum).get(7)); //OS
 										// Need to add screen
-										soldC.setScreen(false);
+										soldC.setScreen(screenBool);
 
 										// Adding Components to ArrayList/Setting them
 										soldComponents.add(soldC);
@@ -419,7 +422,7 @@ public class SupplierTest extends Agent
 										request.setAction(soldOrder);
 										request.setActor(manufacturerAgent);
 										
-										//System.out.println("Testing PC Part (soldPC): " + soldPC.getName());
+										System.out.println("Testing PC Part (soldPC): " + screenBool);
 
 										try
 										{

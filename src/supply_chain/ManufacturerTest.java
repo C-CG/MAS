@@ -168,7 +168,7 @@ public class ManufacturerTest extends Agent
 								PC pc = (PC)it;
 
 
-								System.out.println("Manufacturer Received Customer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " ]");
+								System.out.println("Manufacturer Received Customer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " Screen: " + pc.getComponents().get(0).getScreen() + " ]");
 
 								// Placing Order with Supplier (Needs to be put into a separate behaviour)
 
@@ -214,7 +214,10 @@ public class ManufacturerTest extends Agent
 								{
 									oe.printStackTrace();
 								} 
-
+								
+								// Converting the screen bool to String
+								String screen = String.valueOf(pc.getComponents().get(0).getScreen());
+								
 
 								// Storing of a Customers Order (Need to put this in a seperate class StockCheck)
 								// Testing of Adding Orders to List/HashMap
@@ -226,6 +229,7 @@ public class ManufacturerTest extends Agent
 								orders.add(pc.getComponents().get(0).getRam());
 								orders.add(pc.getComponents().get(0).getHD());
 								orders.add(pc.getComponents().get(0).getOS());
+								orders.add(screen);
 								orders.add(Integer.toString(dueDate));
 								// NEED TO ADD SCREEN
 
@@ -283,6 +287,7 @@ public class ManufacturerTest extends Agent
 			int screenStock = 0;
 			int windowsOsStock = 0;
 			int linuxOsStock = 0;
+			
 			// Seeing if time is the problem
 			doWait(5000);
 			if (msg != null)
@@ -325,6 +330,8 @@ public class ManufacturerTest extends Agent
 								// Add the components from this to a list, then run the StockCheck like desktopCPU count
 								ArrayList<String> stock = new ArrayList<String>();
 
+								String screen = String.valueOf(pc.getComponents().get(0).getScreen());
+								//System.out.println("Screen: " + screen);
 								// Stock List
 								//orders.add(pc.getComponents().get(0).getCPU());
 								stock.add(pc.getComponents().get(0).getCPU());
@@ -332,7 +339,9 @@ public class ManufacturerTest extends Agent
 								stock.add(pc.getComponents().get(0).getRam());
 								stock.add(pc.getComponents().get(0).getHD());
 								stock.add(pc.getComponents().get(0).getOS());
-
+								//stock.add(screen);
+								stock.add(String.valueOf(pc.getComponents().get(0).getScreen()));
+								System.out.println("Screen: " + pc.getComponents().get(0).getScreen());
 								// Mapping these List Values to a key
 								stockLevel.put(pc.getOrderNumber(), stock);
 
@@ -393,7 +402,17 @@ public class ManufacturerTest extends Agent
 								{
 									++linuxOsStock;
 								}
-
+								
+								//Screen
+								if (stockLevel.get(pc.getOrderNumber()).get(5).equals("true"))
+								{
+									++screenStock;
+									System.out.println("ORDER NEEDS SCREEN");
+								}
+								else
+								{
+									System.out.println("ORDER DOES NOT NEED A SCREEN");
+								}
 
 								// Order Complete which means the Day is done for the Manufacturer Agent
 								++orderNum;
@@ -445,11 +464,11 @@ public class ManufacturerTest extends Agent
 					
 					// Stock Check
 					System.out.println("Stock Check: " + "Desktop CPU: " + desktopCPUStock + " Desktop Motherboard: " + desktopMotherboardStock + " Laptop CPU: " + laptopCPUStock + " Laptop Motherboard: " + laptopMotherboardStock
-					+ " Ram 8GB: " + ram8GbStock + " Ram 16GB: " + ram16GbStock + " HDD 1TB: " + hd1TbStock + " HDD 2TB: " + hd2TbStock + " Windows OS: " + windowsOsStock + " Linux OS: " + linuxOsStock);
+					+ " Ram 8GB: " + ram8GbStock + " Ram 16GB: " + ram16GbStock + " HDD 1TB: " + hd1TbStock + " HDD 2TB: " + hd2TbStock + " Windows OS: " + windowsOsStock + " Linux OS: " + linuxOsStock + " Screen: " + screenStock);
 
 					
 					// If the due date of the Customer order is equal to today then:
-					if (customerOrders.get(i).get(5).equals(day))
+					if (customerOrders.get(i).get(6).equals(day))
 					{
 						System.out.println("ORDER IS DUE: " + customerOrders.get(i));
 						// Move the if's to this
@@ -541,10 +560,18 @@ public class ManufacturerTest extends Agent
 							break;
 						}
 						
+						// Screen
+						if (customerOrders.get(i).get(5).equals("true") && screenStock !=0)
+						{
+							System.out.println("Screen in stock and able to ship");
+							--screenStock;
+						}
+						
 						System.out.println("ORDER IS ABLE TO BE SENT: " + customerOrders.get(i));
 						
-						
-						
+						// Screen
+						//String screen = String.valueOf(customerOrders.get(i).get(5));
+						Boolean screen = Boolean.valueOf(customerOrders.get(i).get(5));
 						PC sendPC = new PC();
 						ArrayList<Components> sendComponents = new ArrayList<Components>();
 						Components sendC = new Components();
@@ -557,6 +584,7 @@ public class ManufacturerTest extends Agent
 						sendC.setRam(customerOrders.get(i).get(2)); //RAM
 						sendC.setHD(customerOrders.get(i).get(3)); //HD
 						sendC.setOS(customerOrders.get(i).get(4)); //OS
+						sendC.setScreen(screen);
 						
 						// Need to add screen
 						sendC.setScreen(false);
@@ -608,12 +636,12 @@ public class ManufacturerTest extends Agent
 				send(send);
 				
 				// Checking what Components I need
-				System.out.println("Needed Components: " + "Desktop CPU: " + needDesktopCPU + " Laptop CPU: " + needLaptopCPU + " Desktop Motherboard: " + needDesktopMotherboard + " Laptop Motherboard: " + needLaptopMotherboard
-						);
+				//System.out.println("Needed Components: " + "Desktop CPU: " + needDesktopCPU + " Laptop CPU: " + needLaptopCPU + " Desktop Motherboard: " + needDesktopMotherboard + " Laptop Motherboard: " + needLaptopMotherboard
+						//);
+				
 				// Stock Check
 				System.out.println("Stock Check: " + "Desktop CPU: " + desktopCPUStock + " Desktop Motherboard: " + desktopMotherboardStock + " Laptop CPU: " + laptopCPUStock + " Laptop Motherboard: " + laptopMotherboardStock
-				+ " Ram 8GB: " + ram8GbStock + " Ram 16GB: " + ram16GbStock + " HDD 1TB: " + hd1TbStock + " HDD 2TB: " + hd2TbStock + " Windows OS: " + windowsOsStock + " Linux OS: " + linuxOsStock);
-
+				+ " Ram 8GB: " + ram8GbStock + " Ram 16GB: " + ram16GbStock + " HDD 1TB: " + hd1TbStock + " HDD 2TB: " + hd2TbStock + " Windows OS: " + windowsOsStock + " Linux OS: " + linuxOsStock + " Screen: " + screenStock);
 
 				addBehaviour(new DayComplete(myAgent));
 				myAgent.removeBehaviour(this);
