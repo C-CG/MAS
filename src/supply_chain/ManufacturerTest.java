@@ -440,7 +440,12 @@ public class ManufacturerTest extends Agent
 					// If due date == current day then go through all this crap
 
 					String day = String.valueOf(dayNum);
+					
+					// Stock Check
+					System.out.println("Stock Check: " + "Desktop CPU: " + desktopCPUStock + " Desktop Motherboard: " + desktopMotherboardStock + " Laptop CPU: " + laptopCPUStock + " Laptop Motherboard: " + laptopMotherboardStock
+					+ " Ram 8GB: " + ram8GbStock + " Ram 16GB: " + ram16GbStock + " HDD 1TB: " + hd1TbStock + " HDD 2TB: " + hd2TbStock + " Windows OS: " + windowsOsStock + " Linux OS: " + linuxOsStock);
 
+					
 					// If the due date of the Customer order is equal to today then:
 					if (customerOrders.get(i).get(5).equals(day))
 					{
@@ -452,85 +457,85 @@ public class ManufacturerTest extends Agent
 						// CPU
 						if (customerOrders.get(i).get(0).equals("desktopCPU") && desktopCPUStock != 0)
 						{
-							System.out.println("Desktop CPU in stock and able to ship.");
+							//System.out.println("Desktop CPU in stock and able to ship.");
 							--desktopCPUStock;
 						}
 						else if (customerOrders.get(i).get(0).equals("laptopCPU") && laptopCPUStock != 0)
 						{
-							System.out.println("Laptop CPU in stock and able to ship.");
+							//System.out.println("Laptop CPU in stock and able to ship.");
 							--laptopCPUStock;
 						}
 						else
 						{
-							System.out.println("No CPU's not in stock, cannot ship order.");
+							//System.out.println("No CPU's not in stock, cannot ship order.");
 							break;
 						}
 						
 						// Motherboard
 						if(customerOrders.get(i).get(1).equals("desktopMotherboard") && desktopMotherboardStock !=0)
 						{
-							System.out.println("Desktop Motherboard in stock and able to ship.");
+							//System.out.println("Desktop Motherboard in stock and able to ship.");
 							--desktopMotherboardStock;
 						}
 						else if(customerOrders.get(i).get(1).equals("laptopMotherboard") && laptopMotherboardStock !=0)
 						{
-							System.out.println("Laptop Motherboard in stock and able to ship.");
+							//System.out.println("Laptop Motherboard in stock and able to ship.");
 							--laptopMotherboardStock;
 						}
 						else
 						{
-							System.out.println("No Motherboards in stock, cannot ship order.");
+							//System.out.println("No Motherboards in stock, cannot ship order.");
 							break;
 						}
 						
 						// RAM
 						if (customerOrders.get(i).get(2).equals("8Gb") && ram8GbStock !=0)
 						{
-							System.out.println("8Gb ram in stock and able to ship.");
+							//System.out.println("8Gb ram in stock and able to ship.");
 							--ram8GbStock;
 						}
 						else if (customerOrders.get(i).get(2).equals("16Gb") && ram16GbStock !=0)
 						{
-							System.out.println("16Gb ram in stock and able to ship.");
+							//System.out.println("16Gb ram in stock and able to ship.");
 							--ram16GbStock;
 						}
 						else
 						{
-							System.out.println("No ram in stock, cannot ship order.");
+							//System.out.println("No ram in stock, cannot ship order.");
 							break;
 						}
 						
 						// HD
 						if (customerOrders.get(i).get(3).equals("1Tb") && hd1TbStock !=0)
 						{
-							System.out.println("1Tb hd in stock and able to ship.");
+							//System.out.println("1Tb hd in stock and able to ship.");
 							--hd1TbStock;
 						}
 						else if (customerOrders.get(i).get(3).equals("2Tb") && hd2TbStock !=0)
 						{
-							System.out.println("2Tb hd in stock and able to ship.");
+							//System.out.println("2Tb hd in stock and able to ship.");
 							--hd2TbStock;
 						}
 						else
 						{
-							System.out.println("No HD in stock, cannot ship order.");
+							//System.out.println("No HD in stock, cannot ship order.");
 							break;
 						}
 						
 						// OS
 						if (customerOrders.get(i).get(4).equals("Windows") && windowsOsStock !=0)
 						{
-							System.out.println("Windows OS in stock and able to ship.");
+							//System.out.println("Windows OS in stock and able to ship.");
 							--windowsOsStock;
 						}
 						else if (customerOrders.get(i).get(4).equals("Linux") && linuxOsStock !=0)
 						{
-							System.out.println("Linux OS in stock and able to ship.");
+							//System.out.println("Linux OS in stock and able to ship.");
 							--linuxOsStock;
 						}
 						else
 						{
-							System.out.println("No OS in stock, cannot ship order.");
+							//System.out.println("No OS in stock, cannot ship order.");
 							break;
 						}
 						
@@ -575,7 +580,7 @@ public class ManufacturerTest extends Agent
 						request2.setAction(sendOrder);
 						request2.setActor(customerAgent);
 						
-						System.out.println("PC: "+  sendPC.getName());
+						
 						
 						try
 						{
@@ -596,6 +601,7 @@ public class ManufacturerTest extends Agent
 						
 					}
 				}
+				doWait(2000);
 				send.setContent("no-order");
 				send(send);
 				
@@ -604,7 +610,7 @@ public class ManufacturerTest extends Agent
 						);
 				// Stock Check
 				System.out.println("Stock Check: " + "Desktop CPU: " + desktopCPUStock + " Desktop Motherboard: " + desktopMotherboardStock + " Laptop CPU: " + laptopCPUStock + " Laptop Motherboard: " + laptopMotherboardStock
-						+ " Ram 8GB: " + ram8GbStock + " Ram 16GB: " + ram16GbStock + " HDD 1TB: " + hd1TbStock + " HDD 2TB: " + hd2TbStock + " Windows OS: " + windowsOsStock + " Linux OS: " + linuxOsStock);
+				+ " Ram 8GB: " + ram8GbStock + " Ram 16GB: " + ram16GbStock + " HDD 1TB: " + hd1TbStock + " HDD 2TB: " + hd2TbStock + " Windows OS: " + windowsOsStock + " Linux OS: " + linuxOsStock);
 
 
 				addBehaviour(new DayComplete(myAgent));

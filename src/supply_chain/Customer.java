@@ -351,7 +351,7 @@ public class Customer extends Agent
 				{
 					System.out.println("No orders received today.");
 				}
-				else if (msg.getConversationId().equals("new-order"))
+				else if (msg.getConversationId().equals("new order"))
 				{
 					ContentElement ce = null;
 
@@ -380,7 +380,8 @@ public class Customer extends Agent
 							{
 								PC pc = (PC)it;
 								
-								System.out.println("PC Received Order Num: " + pc.getName());
+								System.out.println("PC Received Order Num: " + pc.getName() + " CPU: " + pc.getComponents().get(0).getCPU() + " Motherboard: " + pc.getComponents().get(0).getMotherboard() + " Ram: "
+								+ pc.getComponents().get(0).getRam() + " HD: " + pc.getComponents().get(0).getHD() + " OS: " + pc.getComponents().get(0).getOS());
 							}
 						}
 					}
