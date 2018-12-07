@@ -18,6 +18,7 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import supply_chain.Customer.DayComplete;
 import jade.core.AID;
 
 // Importing Ontology/Elements
@@ -31,14 +32,28 @@ public class Manufacturer extends Agent
 	private Ontology ontology = SupplyChainOntology.getInstance();
 	// List of Stock (unlimited), using orderNumber as key
 	private HashMap<Integer,Item> computersForSale = new HashMap<>();
-	
+
 	// AIDs for other Agents
 	private AID tickerAgent;
 	private AID customerAgent;
 	private AID supplierAgent;
-	
+
+	// HashMap / list to map an order/components (Used for the building of a PC)
+	HashMap<Integer, ArrayList<String>> customerOrders = new HashMap<Integer, ArrayList<String>>();
+
+	HashMap<Integer, ArrayList<String>> stockLevel = new HashMap<Integer, ArrayList<String>>();
+	// order variable to track number of orders
+	int orderNum = 1;
+	// See if we are able to count the number of certain components from the list (Will be used for stock checking, once order has been delivered)
+	int desktopCPUCount = 0;
+
+	public int dayNum = 1;
+
 	protected void setup() 
 	{
+		getContentManager().registerLanguage(codec);
+		getContentManager().registerOntology(ontology);
+
 		// Register the Agent in the Directory
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
@@ -60,68 +75,36 @@ public class Manufacturer extends Agent
 		{
 			e.printStackTrace();
 		}
-		
-		
-		// Look into what these do
-		getContentManager().registerLanguage(codec);
-		getContentManager().registerOntology(ontology);
-		
-		// Creating a new PC to sell (would be automated in the future, based on Customer's wants)
-		/* 
-		PC pc = new PC();
-		pc.setName("Desktop");
-		pc.setOrderNumber(0001);
-		*/
-		
-		// Creating new PC to sell (new Ontology)
-		PC pc = new PC();
-		pc.setName("Desktop");
-		pc.setOrderNumber(0001);
-		// Adding the Components
-		ArrayList<Components> components = new ArrayList<Components>();
-		Components c = new Components();
-		c.setRam("8gb");
-		c.setHD("1Tb");
-		c.setOS("Windows");
-		c.setCPU("desktopCPU");
-		c.setMotherboard("desktopMotherboard");
-		c.setScreen(false);
-		components.add(c);
-		pc.setComponents(components);
-		
-		// Adding the PC to the HashMap
-		computersForSale.put(pc.getOrderNumber(), pc);
-		
-		// Testing Output
-		//System.out.println("Computers for sale: " + pc.toString() + " from: " + getAID().getName());
+
+		customerAgent = new AID("customer", AID.ISLOCALNAME);
 		
 		// Add Behaviours
 		addBehaviour(new TickerWaiter(this));
 	}
-	
+
 	public class TickerWaiter extends CyclicBehaviour
 	{
-		
+
 		public TickerWaiter(Agent a)
 		{
 			super(a);
 		}
-		
+
 		@Override
 		public void action() 
 		{
-			
+
 			// Setting up Messaging for Communication/Working
 			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchContent("end"), MessageTemplate.MatchContent("new day"));
 			ACLMessage msg = myAgent.receive(mt);
-			
+
 			if (msg !=null)
 			{
 				if(tickerAgent == null)
 				{
 					tickerAgent = msg.getSender();
 				}
-				
+
 				// Checking if the message received states a "new day", if so do work.
 				if(msg.getContent().equals("new day"))
 				{
@@ -141,49 +124,125 @@ public class Manufacturer extends Agent
 				block();
 			}
 		}
-		
+
 	}
-	
+
 	private class SellBehaviour extends CyclicBehaviour
 	{
 
 		@Override
-		public void action() {
+		public void action() 
+		{
+			// Set Supplier Agent
+			supplierAgent = new AID("supplier",AID.ISLOCALNAME);
+
 			// Responds to Customer REQUEST messages only
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
 			ACLMessage msg = receive(mt);
-			
+
 			// Message Validation
 			if(msg !=null)
 			{
 				try
 				{
 					ContentElement ce = null;
-					
+
 					// JADE converts String to Java Object, Outputting it as a ContentElement
 					ce = getContentManager().extractContent(msg);
-					
+
 					if(ce instanceof Action)
 					{
 						Concept action = ((Action)ce).getAction();
-						
+
 						if (action instanceof Sell)
 						{
 							Sell order = (Sell)action;
-							
+
 							Item it = order.getItem();
-							
+							int dueInDays = order.getDueInDays();
+							int price = order.getPrice();
+							int dueDate = dayNum + dueInDays;
 							// Printing PC name to demo Ontology
 							if(it instanceof PC)
 							{
 								PC pc = (PC)it;
+
+
+								System.out.println("Manufacturer Received Customer Order: " + pc.getOrderNumber());
+
+								// Placing Order with Supplier (Needs to be put into a separate behaviour)
+
+								// Preparing the request message
+								ACLMessage msg2 = new ACLMessage(ACLMessage.REQUEST);
+
+								// Set receiver to Supplier Agent
+								msg2.addReceiver(supplierAgent);
+								msg2.setLanguage(codec.getName());
+								msg2.setOntology(ontology.getName()); 
+
+
+								// Order, sets Buyer and what Item they want
+								Sell manufacturerOrder = new Sell();
+								manufacturerOrder.setCustomer(myAgent.getAID());
+								manufacturerOrder.setItem(pc);
+								manufacturerOrder.setCurrentDay(dayNum);
+								manufacturerOrder.setDueInDays(dueInDays);
+								manufacturerOrder.setPrice(price);
+
+								// Sending Message to Supplier
+								// IMPORTANT: Set up this way due to FIPA, otherwise we get an exception (crash)
+								Action request = new Action();
+								request.setAction(manufacturerOrder);
+								request.setActor(supplierAgent); // the agent that you request to perform the action
+
+								try 
+								{
+									// Output to Console
+									System.out.println("Manufacturer Placing Order...");
+									doWait(2000);
+
+									// Let JADE convert from Java objects to string
+									getContentManager().fillContent(msg2, request); //send the wrapper object
+									send(msg2);
+
+								}
+								catch (CodecException ce2) 
+								{
+									ce2.printStackTrace();
+								}
+								catch (OntologyException oe) 
+								{
+									oe.printStackTrace();
+								} 
 								
+								// Converting the screen bool to String
+								String screen = String.valueOf(pc.getComponents().get(0).getScreen());
 								
-								System.out.println("Manufacturer Received Customer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " ]");
-								
-								
-								// Change this to the Buy Behaviour 
-								myAgent.addBehaviour(new BuyBehaviour(myAgent));
+
+								// Storing of a Customers Order (Need to put this in a seperate class StockCheck)
+								// Testing of Adding Orders to List/HashMap
+								ArrayList<String> orders = new ArrayList<String>();
+
+								// Adding Day of Order, Due Date, Price into List
+								orders.add(pc.getComponents().get(0).getCPU());
+								orders.add(pc.getComponents().get(0).getMotherboard());
+								orders.add(pc.getComponents().get(0).getRam());
+								orders.add(pc.getComponents().get(0).getHD());
+								orders.add(pc.getComponents().get(0).getOS());
+								orders.add(screen);
+								orders.add(Integer.toString(dueDate));
+								// NEED TO ADD SCREEN
+
+
+								// Mapping these List Values to a key
+								customerOrders.put(pc.getOrderNumber(), orders);
+
+								// Testing output
+								//System.out.println("Order Tracking: " + customerOrders);
+
+								addBehaviour(new StockCheck(myAgent));
+								// Remove Behaviour
+								myAgent.removeBehaviour(this);
 							}
 						}
 					}
@@ -196,13 +255,406 @@ public class Manufacturer extends Agent
 				{
 					oe.printStackTrace();
 				}
-				
+
 			}
-			
+
 		}
-		
+
 	}
-	
+
+	public class StockCheck extends CyclicBehaviour
+	{
+
+		public StockCheck(Agent a)
+		{
+			super(a);
+		}
+
+		@Override
+		public void action() 
+		{
+			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchConversationId("new order"), MessageTemplate.MatchContent("no-order"));
+			ACLMessage msg = myAgent.receive(mt);
+
+			int desktopCPUStock = 0;
+			int laptopCPUStock = 0;
+			int desktopMotherboardStock = 0;
+			int laptopMotherboardStock = 0;
+			int ram8GbStock = 0;
+			int ram16GbStock = 0;
+			int hd1TbStock = 0;
+			int hd2TbStock = 0;
+			int screenStock = 0;
+			int windowsOsStock = 0;
+			int linuxOsStock = 0;
+			
+			// Seeing if time is the problem
+			doWait(5000);
+			if (msg != null)
+			{
+				if(supplierAgent == null)
+				{
+					supplierAgent = msg.getSender();
+				}
+
+
+				if (msg.getContent().equals("no-order"))
+				{
+					//System.out.println("No Components received today.");
+				}
+				else if (msg.getConversationId().equals("new order"))
+				{
+					ContentElement ce = null;
+
+					// JADE converts String to Java Object, Outputting it as a ContentElement
+					try {
+						ce = getContentManager().extractContent(msg);
+					} catch (CodecException | OntologyException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+					if(ce instanceof Action)
+					{
+						Concept action = ((Action)ce).getAction();
+
+						if (action instanceof Sell)
+						{
+							Sell order = (Sell)action;
+
+							Item it = order.getItem();
+							// Printing PC name to demo Ontology
+							if(it instanceof PC)
+							{
+								PC pc = (PC)it;
+								// Add the components from this to a list, then run the StockCheck like desktopCPU count
+								ArrayList<String> stock = new ArrayList<String>();
+
+								String screen = String.valueOf(pc.getComponents().get(0).getScreen());
+								
+								// Stock List
+								//orders.add(pc.getComponents().get(0).getCPU());
+								stock.add(pc.getComponents().get(0).getCPU());
+								stock.add(pc.getComponents().get(0).getMotherboard());
+								stock.add(pc.getComponents().get(0).getRam());
+								stock.add(pc.getComponents().get(0).getHD());
+								stock.add(pc.getComponents().get(0).getOS());								
+								stock.add(String.valueOf(pc.getComponents().get(0).getScreen()));
+								
+								// Mapping these List Values to a key
+								stockLevel.put(pc.getOrderNumber(), stock);
+
+								//orderNum = 1;
+
+								System.out.println("PC Received Order Num: " + pc.getOrderNumber() + " CPU " + pc.getComponents().get(0).getCPU() + " RAM " + pc.getComponents().get(0).getRam());
+								
+								System.out.println("Order Number: " + pc.getOrderNumber());
+								
+								// CPU
+								if (stockLevel.get(pc.getOrderNumber()).get(0).equals("desktopCPU"))
+								{
+									++desktopCPUStock;
+								}
+								else if (stockLevel.get(pc.getOrderNumber()).get(0).equals("laptopCPU"))
+								{
+									++laptopCPUStock;
+								}
+
+								// Motherboard
+								if (stockLevel.get(pc.getOrderNumber()).get(1).equals("desktopMotherboard"))
+								{
+									++desktopMotherboardStock;
+								}
+								else if (stockLevel.get(pc.getOrderNumber()).get(1).equals("laptopMotherboard"))
+								{
+									++laptopMotherboardStock;
+								}
+
+								// RAM
+								if (stockLevel.get(pc.getOrderNumber()).get(2).equals("8Gb"))
+								{
+									++ram8GbStock;
+								}
+								else if (stockLevel.get(pc.getOrderNumber()).get(2).equals("16Gb"))
+								{
+									++ram16GbStock;
+								}
+
+								//HDD
+								if (stockLevel.get(pc.getOrderNumber()).get(3).equals("1Tb"))
+								{
+									++hd1TbStock;
+								}
+								if (stockLevel.get(pc.getOrderNumber()).get(3).equals("2Tb"))
+								{
+									++hd2TbStock;
+								}
+
+								//Screen (Check if added)
+
+								//OS
+								if (stockLevel.get(pc.getOrderNumber()).get(4).equals("Windows"))
+								{
+									++windowsOsStock;
+								}
+								else if (stockLevel.get(pc.getOrderNumber()).get(4).equals("Linux"))
+								{
+									++linuxOsStock;
+								}
+								
+								//Screen
+								if (stockLevel.get(pc.getOrderNumber()).get(5).equals("true"))
+								{
+									++screenStock;
+									System.out.println("ORDER NEEDS SCREEN");
+								}
+								else
+								{
+									System.out.println("ORDER DOES NOT NEED A SCREEN");
+								}
+
+								// Order Complete which means the Day is done for the Manufacturer Agent
+								++orderNum;
+
+							}
+						}
+
+					}
+				}
+				else
+				{
+					System.out.println("RANDOM MESSAGE RECEIVED FROM SUPPLIER");
+				}
+
+
+				// After this begin new behaviour (delivery)
+				// ^ For Loop that goes through, customerOrders and stockLevel
+				// See's if they contain the same stuff, if so send order
+				//System.out.println("Customer Orders Received: " + customerOrders);
+
+				// Sets what components we need = 0, may make these global and -- when component has been used
+				int needDesktopCPU = 0;
+				int needLaptopCPU = 0;
+				int needDesktopMotherboard = 0;
+				int needLaptopMotherboard = 0;
+				int needRam8Gb = 0;
+				int needRam16Gb = 0;
+				int needHD1Tb = 0;
+				int needHD2Tb = 0;
+				int needWindowsOs = 0;
+				int needLinuxOs = 0;
+
+				ArrayList<String> stock = new ArrayList<String>();
+				
+				ACLMessage send = new ACLMessage(ACLMessage.INFORM);
+				send.addReceiver(customerAgent);
+				
+				//System.out.println("Customer Order Test: " + customerOrders.get(1));
+				for (int i =1; i <= customerOrders.size(); ++i)
+				{
+					// Works, outputs each order order 1 = i(1), 2 = i(2)
+					//System.out.println("I Value: " + i);
+					//System.out.println("Customer Order: " + customerOrders.get(i));
+
+					// Need to store the due date of the order
+					// If due date == current day then go through all this crap
+
+					String day = String.valueOf(dayNum);
+					
+					// Stock Check
+					System.out.println("Stock Check: " + "Desktop CPU: " + desktopCPUStock + " Desktop Motherboard: " + desktopMotherboardStock + " Laptop CPU: " + laptopCPUStock + " Laptop Motherboard: " + laptopMotherboardStock
+					+ " Ram 8GB: " + ram8GbStock + " Ram 16GB: " + ram16GbStock + " HDD 1TB: " + hd1TbStock + " HDD 2TB: " + hd2TbStock + " Windows OS: " + windowsOsStock + " Linux OS: " + linuxOsStock + " Screen: " + screenStock);
+
+					
+					// If the due date of the Customer order is equal to today then:
+					if (customerOrders.get(i).get(6).equals(day))
+					{
+						System.out.println("ORDER IS DUE: " + customerOrders.get(i));
+						// Move the if's to this
+						
+						// Now Checking if the Components are in stock
+						
+						// CPU
+						if (customerOrders.get(i).get(0).equals("desktopCPU") && desktopCPUStock != 0)
+						{
+							//System.out.println("Desktop CPU in stock and able to ship.");
+							--desktopCPUStock;
+						}
+						else if (customerOrders.get(i).get(0).equals("laptopCPU") && laptopCPUStock != 0)
+						{
+							//System.out.println("Laptop CPU in stock and able to ship.");
+							--laptopCPUStock;
+						}
+						else
+						{
+							//System.out.println("No CPU's not in stock, cannot ship order.");
+							break;
+						}
+						
+						// Motherboard
+						if(customerOrders.get(i).get(1).equals("desktopMotherboard") && desktopMotherboardStock !=0)
+						{
+							//System.out.println("Desktop Motherboard in stock and able to ship.");
+							--desktopMotherboardStock;
+						}
+						else if(customerOrders.get(i).get(1).equals("laptopMotherboard") && laptopMotherboardStock !=0)
+						{
+							//System.out.println("Laptop Motherboard in stock and able to ship.");
+							--laptopMotherboardStock;
+						}
+						else
+						{
+							//System.out.println("No Motherboards in stock, cannot ship order.");
+							break;
+						}
+						
+						// RAM
+						if (customerOrders.get(i).get(2).equals("8Gb") && ram8GbStock !=0)
+						{
+							//System.out.println("8Gb ram in stock and able to ship.");
+							--ram8GbStock;
+						}
+						else if (customerOrders.get(i).get(2).equals("16Gb") && ram16GbStock !=0)
+						{
+							//System.out.println("16Gb ram in stock and able to ship.");
+							--ram16GbStock;
+						}
+						else
+						{
+							//System.out.println("No ram in stock, cannot ship order.");
+							break;
+						}
+						
+						// HD
+						if (customerOrders.get(i).get(3).equals("1Tb") && hd1TbStock !=0)
+						{
+							//System.out.println("1Tb hd in stock and able to ship.");
+							--hd1TbStock;
+						}
+						else if (customerOrders.get(i).get(3).equals("2Tb") && hd2TbStock !=0)
+						{
+							//System.out.println("2Tb hd in stock and able to ship.");
+							--hd2TbStock;
+						}
+						else
+						{
+							//System.out.println("No HD in stock, cannot ship order.");
+							break;
+						}
+						
+						// OS
+						if (customerOrders.get(i).get(4).equals("Windows") && windowsOsStock !=0)
+						{
+							//System.out.println("Windows OS in stock and able to ship.");
+							--windowsOsStock;
+						}
+						else if (customerOrders.get(i).get(4).equals("Linux") && linuxOsStock !=0)
+						{
+							//System.out.println("Linux OS in stock and able to ship.");
+							--linuxOsStock;
+						}
+						else
+						{
+							//System.out.println("No OS in stock, cannot ship order.");
+							break;
+						}
+						
+						// Screen
+						if (customerOrders.get(i).get(5).equals("true") && screenStock !=0)
+						{
+							//System.out.println("Screen in stock and able to ship");
+							--screenStock;
+						}
+						
+						System.out.println("ORDER IS ABLE TO BE SENT: " + customerOrders.get(i));
+						
+						// Screen
+						//String screen = String.valueOf(customerOrders.get(i).get(5));
+						Boolean screen = Boolean.valueOf(customerOrders.get(i).get(5));
+						PC sendPC = new PC();
+						ArrayList<Components> sendComponents = new ArrayList<Components>();
+						Components sendC = new Components();
+						
+						sendPC.setName("Test"); // Name
+						sendPC.setOrderNumber(i); // Order Number
+
+						sendC.setCPU(customerOrders.get(i).get(0)); // CPU
+						sendC.setMotherboard(customerOrders.get(i).get(1)); // Motherboard
+						sendC.setRam(customerOrders.get(i).get(2)); //RAM
+						sendC.setHD(customerOrders.get(i).get(3)); //HD
+						sendC.setOS(customerOrders.get(i).get(4)); //OS
+						sendC.setScreen(screen);
+						
+						// Need to add screen
+						sendC.setScreen(false);
+						
+						sendComponents.add(sendC);
+						sendPC.setComponents(sendComponents);
+						
+						// Set receive to Customer Agent
+						send.setContent("order");
+						// May need to change this to a local agent
+						send.addReceiver(customerAgent);
+						send.setLanguage(codec.getName());
+						send.setOntology(ontology.getName());
+						send.setConversationId("new order");
+						
+						// Order
+						Sell sendOrder = new Sell();
+						sendOrder.setCustomer(myAgent.getAID());
+						sendOrder.setItem(sendPC);
+						
+						// Sending Message to Manufacturer
+						Action request2 = new Action();
+						request2.setAction(sendOrder);
+						request2.setActor(customerAgent);
+						
+						
+						
+						try
+						{
+							getContentManager().fillContent(send, request2);
+							send(send);
+							send.reset();
+							System.out.println("Message sent to Customer");
+							break;
+						}
+						catch (CodecException ce2) 
+						{
+							ce2.printStackTrace();
+						}
+						catch (OntologyException oe) 
+						{
+							oe.printStackTrace();
+						} 
+						
+					}
+				}
+				doWait(2000);
+				send.setContent("no-order");
+				send(send);
+				
+				// Checking what Components I need
+				//System.out.println("Needed Components: " + "Desktop CPU: " + needDesktopCPU + " Laptop CPU: " + needLaptopCPU + " Desktop Motherboard: " + needDesktopMotherboard + " Laptop Motherboard: " + needLaptopMotherboard
+						//);
+				
+				// Stock Check
+				System.out.println("Stock Check: " + "Desktop CPU: " + desktopCPUStock + " Desktop Motherboard: " + desktopMotherboardStock + " Laptop CPU: " + laptopCPUStock + " Laptop Motherboard: " + laptopMotherboardStock
+				+ " Ram 8GB: " + ram8GbStock + " Ram 16GB: " + ram16GbStock + " HDD 1TB: " + hd1TbStock + " HDD 2TB: " + hd2TbStock + " Windows OS: " + windowsOsStock + " Linux OS: " + linuxOsStock + " Screen: " + screenStock);
+
+				addBehaviour(new DayComplete(myAgent));
+				myAgent.removeBehaviour(this);
+			}
+			else
+			{
+				block();
+			}	
+		}	
+	}
+
+
+
+
 	// Used for Purchasing Compontents from the Supplier/s
 	public class BuyBehaviour extends CyclicBehaviour
 	{
@@ -210,30 +662,18 @@ public class Manufacturer extends Agent
 		{
 			super(a);
 		}
-		
+
 		@Override
 		public void action() 
 		{
-			// Send a Message or Request in here to Supplier Agent
-			// Run the DayComplete Behaviour in here
-			
-			// "Buying" components from Supplier, currently just a message. Need to setup the Ontology
-			ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-			msg.addReceiver(supplierAgent);
 
-			System.out.println("Manufacturer Placing Order...");
-			doWait(2000);
-			myAgent.send(msg);
-			// Remove Behaviour
-			myAgent.addBehaviour(new DayComplete(myAgent));
-			myAgent.removeBehaviour(this);		
 		}
-		
+
 	}
-	
+
 	public class DayComplete extends CyclicBehaviour
 	{
-		
+
 		public DayComplete(Agent a)
 		{
 			super(a);
@@ -249,8 +689,9 @@ public class Manufacturer extends Agent
 			myAgent.send(tick);
 			// Remove Behaviour
 			myAgent.removeBehaviour(this);
-			
+			++dayNum;
+
 		}
-		
+
 	}
 }

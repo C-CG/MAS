@@ -491,96 +491,26 @@ public class SupplierTest extends Agent
 
 			int dueDate = currentDay + dueInDays;
 
-			// if it's not due the next day, always picks Supplier 2. Need to work out how to differentiate them (price).
 
 			if (currentDay + 1 == dueDate || currentDay + 2 == dueDate)
 			{
-				// Then Supplier 1
 				selectedSupplier = 1;
+				System.out.println("Selected Supplier: " + selectedSupplier);
 			}
 			else if (currentDay + 3 == dueDate || currentDay + 4 == dueDate || currentDay + 5 == dueDate || currentDay + 6 == dueDate )
 			{
 				selectedSupplier = 2;
+				System.out.println("Selected Supplier: " + selectedSupplier);
 			}
 			else if (currentDay + 7 == dueDate || currentDay + 8 == dueDate || currentDay + 9 == dueDate || currentDay + 10 == dueDate)
 			{
 				selectedSupplier = 3;
+				System.out.println("Selected Supplier: " + selectedSupplier);
 			}
 
 			return selectedSupplier;
 
 		}
-	}
-
-
-
-	private class SellBehaviour extends CyclicBehaviour
-	{
-		// Doubt I need this (need to copy the sellBehavior from Manufacturer, has unlimited stock so don't need to adjust it. Just need new ontology for it)
-		public SellBehaviour(Agent a)
-		{
-			super(a);
-		}
-
-		@Override
-		public void action() 
-		{
-
-			// Preparing the request message
-			ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-
-			// Set receiver to Manufacturer Agent
-			msg.addReceiver(manufacturerAgent);
-			msg.setLanguage(codec.getName());
-			msg.setOntology(ontology.getName()); 
-
-			// Order, sets Buyer and what Item they want
-			Sell order = new Sell();
-			order.setCustomer(manufacturerAgent);
-			// need to return PC or take it from list
-			//order.setItem(pc);
-			// Order details used for queries
-			order.setCurrentDay(currentDay);
-			order.setDueInDays(dueInDays);
-			order.setPrice(totalPrice);
-
-			// Sending Message to Manufacturer
-			// IMPORTANT: Set up this way due to FIPA, otherwise we get an exception (crash)
-			Action request = new Action();
-			request.setAction(order);
-			request.setActor(manufacturerAgent); // the agent that you request to perform the action
-			try 
-			{
-				// Output to Console
-				System.out.println("PC being sent to Manufacturer...");
-				doWait(2000);
-
-				System.out.println("TESTING SUPPLIER SELL BEHAVIOUR: " + customerOrders.get(0));
-
-				doWait(2000);
-
-				// Let JADE convert from Java objects to string
-				getContentManager().fillContent(msg, request); //send the wrapper object
-				send(msg);
-
-			}
-			catch (CodecException ce) 
-			{
-				ce.printStackTrace();
-			}
-			catch (OntologyException oe) 
-			{
-				oe.printStackTrace();
-			} 
-
-			// Order Complete which means the Day is done for the Supplier Agent
-			addBehaviour(new DayComplete(myAgent));
-			// Remove Behaviour
-			myAgent.removeBehaviour(this);
-
-
-		}
-
 	}
 
 	public class DayComplete extends CyclicBehaviour

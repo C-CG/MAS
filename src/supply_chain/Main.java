@@ -14,13 +14,13 @@ public class Main {
 			AgentController rma = myContainer.createNewAgent("rma", "jade.tools.rma.rma", null);
 			rma.start();
 			
-			AgentController ManufacturerAgent = myContainer.createNewAgent("Manufacturer", ManufacturerTest.class.getCanonicalName(), null);
+			AgentController ManufacturerAgent = myContainer.createNewAgent("Manufacturer", Manufacturer.class.getCanonicalName(), null);
 			ManufacturerAgent.start();
 			
 			AgentController CustomerAgent = myContainer.createNewAgent("Customer", Customer.class.getCanonicalName(), null);
 			CustomerAgent.start();
 			
-			AgentController SupplierAgent = myContainer.createNewAgent("Supplier", SupplierTest.class.getCanonicalName(), null);
+			AgentController SupplierAgent = myContainer.createNewAgent("Supplier", Supplier.class.getCanonicalName(), null);
 			SupplierAgent.start();
 			
 			AgentController TickerAgent = myContainer.createNewAgent("Ticker", Ticker.class.getCanonicalName(), null);

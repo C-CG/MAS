@@ -23,6 +23,7 @@ import supply_chain.Manufacturer.DayComplete;
 import supply_chain.Manufacturer.TickerWaiter;
 import supply_chain.ManufacturerTest.BuyBehaviour;
 import supply_chain_ontology.SupplyChainOntology;
+import supply_chain_ontology.elements.Components;
 import supply_chain_ontology.elements.Item;
 import supply_chain_ontology.elements.PC;
 import supply_chain_ontology.elements.Sell;
@@ -44,7 +45,7 @@ public class Supplier extends Agent
 	int currentDay;
 	int price;
 	int dueInDays;
-	
+
 	// Used to store all the orders received from the Customer Agent
 	HashMap<Integer, ArrayList<String>> customerOrders = new HashMap<Integer, ArrayList<String>>();
 
@@ -81,6 +82,8 @@ public class Supplier extends Agent
 
 		// Add Behaviours
 		addBehaviour(new TickerWaiter(this));
+		
+		manufacturerAgent = new AID("manufacturer",AID.ISLOCALNAME);
 	}
 
 	public class TickerWaiter extends CyclicBehaviour
@@ -109,7 +112,7 @@ public class Supplier extends Agent
 				// Checking if the message received states a "new day", if so do work.
 				if(msg.getContent().equals("new day"))
 				{
-
+					
 					// Add Behaviour
 					myAgent.addBehaviour(new ReceiveOrder());
 				}
@@ -166,7 +169,7 @@ public class Supplier extends Agent
 							{
 								PC pc = (PC)it;
 
-								System.out.println("Supplier Received Manufacturer Order: " + pc.getOrderNumber() + " [ " + pc.getName() + " ]");
+								System.out.println("Supplier Received Manufacturer Order: " + pc.getOrderNumber());
 
 								// Testing output of details
 								//System.out.println("Testing Order Details Extraction from Order: " + orderDetails);
@@ -184,7 +187,6 @@ public class Supplier extends Agent
 								int dueDate = currentDay + dueInDays;
 								SelectSupplier supplier = new SelectSupplier();
 								int selectedSupplier = supplier.returnSupplier();
-								System.out.println("Supplier: " + selectedSupplier);
 
 								// change to cases
 								if (selectedSupplier == 1)
@@ -322,63 +324,127 @@ public class Supplier extends Agent
 
 									totalPrice = motherboard + cpu + screen + hdd + ram + os;
 								}
-								
+
 								// Need to create a list to store PC Specs, price and dueDate (-1 ??)
 								ArrayList<String> orders = new ArrayList<String>();
-								
+
 								// Converting Int Values to Strings to be stored in the List (orders)
 								String due = Integer.toString(dueDate);
 								String cost = Integer.toString(totalPrice);
 								String day = Integer.toString(currentDay);
+								String screen2 = String.valueOf(pc.getComponents().get(0).getScreen());
 								// List Order Details
 								orders.add(due);
 								orders.add(cost);
 								// List Components
+								orders.add(pc.getName());
 								orders.add(pc.getComponents().get(0).getCPU());
 								orders.add(pc.getComponents().get(0).getMotherboard());
 								orders.add(pc.getComponents().get(0).getRam());
 								orders.add(pc.getComponents().get(0).getHD());
 								orders.add(pc.getComponents().get(0).getOS());
-								
-								
+								orders.add(screen2);
+
 								
 								// Mapping these List Values to a key
 								customerOrders.put(pc.getOrderNumber(), orders);
-								
-								// Testing output (works fine)
-								System.out.println("Order Tracking Supplier: " + customerOrders);
-								
-								System.out.println("Supplier: " + selectedSupplier + " Due Date: " + dueDate  +  " Price: " + "£" + totalPrice);
-								
-								// Now need to loop through the list and retrieve the order number/due date
-								// if the due date = the current day, then sell order the matching pc to the manufacturer
-								// ^ would be in the SellBehaviour class myAgent.addBehaviour(new SellBehaviour(myAgent));
-								// for loop with an if inside
-								// Testing output
-								
+
 								int orderNum = 1;
+								// Create list of components here
+								int cpuSent = 0;
+
+
+								ACLMessage sold = new ACLMessage(ACLMessage.INFORM);
+								sold.addReceiver(manufacturerAgent);
 								
-								for (int i=0; i < customerOrders.size(); i++)
+								
+								for (int i=0; i < customerOrders.size(); ++i)
 								{
-									
+
 									// Add if statement in here
 									if (customerOrders.get(orderNum).get(0).equals(day))
 									{
-										System.out.println("ORDER SENT TO MANUFACTURER " + customerOrders.get(orderNum));	
+										
+										//System.out.println("ORDER SENT TO MANUFACTURER " + customerOrders.get(orderNum));
+										
+										// Create a new PC to store these components in (from customerOrders list)
+										PC soldPC = new PC();
+										ArrayList<Components> soldComponents = new ArrayList<Components>();
+										Components soldC = new Components();
+										// Converting the Screen to a Bool
+										Boolean screenBool = Boolean.valueOf(customerOrders.get(orderNum).get(8));
+										
+										// Adding the various components to the "Sold PC"
+										soldPC.setName(customerOrders.get(orderNum).get(2)); // Name
+										soldPC.setOrderNumber(orderNum); // Order Number
+
+										soldC.setCPU(customerOrders.get(orderNum).get(3)); // CPU
+										soldC.setMotherboard(customerOrders.get(orderNum).get(4)); // Motherboard
+										soldC.setRam(customerOrders.get(orderNum).get(5)); //RAM
+										soldC.setHD(customerOrders.get(orderNum).get(6)); //HD
+										soldC.setOS(customerOrders.get(orderNum).get(7)); //OS
+										// Need to add screen
+										soldC.setScreen(screenBool);
+
+										// Adding Components to ArrayList/Setting them
+										soldComponents.add(soldC);
+										soldPC.setComponents(soldComponents);
+
+										// Set receive to Manufacturer Agent
+										sold.setContent("order");
+										sold.addReceiver(manufacturerAgent);
+										sold.setLanguage(codec.getName());
+										sold.setOntology(ontology.getName());
+										sold.setConversationId("new order");
+
+										// Order
+										Sell soldOrder = new Sell();
+										soldOrder.setCustomer(myAgent.getAID());
+										soldOrder.setItem(soldPC);
+										// Testing to see if this is why it breaks
+										soldOrder.setCurrentDay(currentDay);
+										soldOrder.setDueInDays(dueInDays);
+										soldOrder.setPrice(price);
+
+										// Sending Message to Manufacturer
+										Action request = new Action();
+										request.setAction(soldOrder);
+										request.setActor(manufacturerAgent);
+										
+										
+
+										try
+										{
+											getContentManager().fillContent(sold, request);
+											//System.out.println("Sending PC to Manufacturer: ID: " + sold.getConversationId());
+											send(sold);
+											sold.reset();
+											
+											break;
+
+										}
+
+										catch (CodecException ce2) 
+										{
+											ce2.printStackTrace();
+										}
+										catch (OntologyException oe) 
+										{
+											oe.printStackTrace();
+										} 
+										
 									}
 									else
 									{
 										orderNum++;
 									}
 								}
-								// ADD MESSAGE SEND HERE
-								//System.out.println("Testing to see if it saves PC: " + customerOrders.get(orderNum)); Prints the correct PC, so we know we can get those details here
-								
-								
-								
+								sold.setContent("no-order");
+								send(sold);
 								
 								myAgent.addBehaviour(new DayComplete(myAgent));
-
+								// Remove Behaviour
+								myAgent.removeBehaviour(this);
 							}
 						}
 					}
@@ -414,96 +480,26 @@ public class Supplier extends Agent
 
 			int dueDate = currentDay + dueInDays;
 
-			// if it's not due the next day, always picks Supplier 2. Need to work out how to differentiate them (price).
 
 			if (currentDay + 1 == dueDate || currentDay + 2 == dueDate)
 			{
-				// Then Supplier 1
 				selectedSupplier = 1;
+				
 			}
 			else if (currentDay + 3 == dueDate || currentDay + 4 == dueDate || currentDay + 5 == dueDate || currentDay + 6 == dueDate )
 			{
 				selectedSupplier = 2;
+				
 			}
 			else if (currentDay + 7 == dueDate || currentDay + 8 == dueDate || currentDay + 9 == dueDate || currentDay + 10 == dueDate)
 			{
 				selectedSupplier = 3;
+				
 			}
 
 			return selectedSupplier;
 
 		}
-	}
-
-
-
-	private class SellBehaviour extends CyclicBehaviour
-	{
-		// Doubt I need this (need to copy the sellBehavior from Manufacturer, has unlimited stock so don't need to adjust it. Just need new ontology for it)
-		public SellBehaviour(Agent a)
-		{
-			super(a);
-		}
-
-		@Override
-		public void action() 
-		{
-
-			// Preparing the request message
-			ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-
-			// Set receiver to Manufacturer Agent
-			msg.addReceiver(manufacturerAgent);
-			msg.setLanguage(codec.getName());
-			msg.setOntology(ontology.getName()); 
-			
-			// Order, sets Buyer and what Item they want
-			Sell order = new Sell();
-			order.setCustomer(manufacturerAgent);
-			// need to return PC or take it from list
-			//order.setItem(pc);
-			// Order details used for queries
-			order.setCurrentDay(currentDay);
-			order.setDueInDays(dueInDays);
-			order.setPrice(totalPrice);
-
-			// Sending Message to Manufacturer
-			// IMPORTANT: Set up this way due to FIPA, otherwise we get an exception (crash)
-			Action request = new Action();
-			request.setAction(order);
-			request.setActor(manufacturerAgent); // the agent that you request to perform the action
-			try 
-			{
-				// Output to Console
-				System.out.println("PC being sent to Manufacturer...");
-				doWait(2000);
-				
-				System.out.println("TESTING SUPPLIER SELL BEHAVIOUR: " + customerOrders.get(0));
-				
-				doWait(2000);
-				
-				// Let JADE convert from Java objects to string
-				getContentManager().fillContent(msg, request); //send the wrapper object
-				send(msg);
-
-			}
-			catch (CodecException ce) 
-			{
-				ce.printStackTrace();
-			}
-			catch (OntologyException oe) 
-			{
-				oe.printStackTrace();
-			} 
-
-			// Order Complete which means the Day is done for the Supplier Agent
-			addBehaviour(new DayComplete(myAgent));
-			// Remove Behaviour
-			myAgent.removeBehaviour(this);
-
-
-		}
-
 	}
 
 	public class DayComplete extends CyclicBehaviour

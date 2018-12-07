@@ -380,7 +380,7 @@ public class Customer extends Agent
 							{
 								PC pc = (PC)it;
 								
-								System.out.println("PC Received Order Num: " + pc.getOrderNumber());
+								System.out.println("Customer Received PC Order Num: " + pc.getOrderNumber());
 							}
 						}
 					}

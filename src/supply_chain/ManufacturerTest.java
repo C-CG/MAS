@@ -478,17 +478,17 @@ public class ManufacturerTest extends Agent
 						// CPU
 						if (customerOrders.get(i).get(0).equals("desktopCPU") && desktopCPUStock != 0)
 						{
-							//System.out.println("Desktop CPU in stock and able to ship.");
+							System.out.println("Desktop CPU in stock and able to ship.");
 							--desktopCPUStock;
 						}
 						else if (customerOrders.get(i).get(0).equals("laptopCPU") && laptopCPUStock != 0)
 						{
-							//System.out.println("Laptop CPU in stock and able to ship.");
+							System.out.println("Laptop CPU in stock and able to ship.");
 							--laptopCPUStock;
 						}
 						else
 						{
-							//System.out.println("No CPU's not in stock, cannot ship order.");
+							System.out.println("No CPU's not in stock, cannot ship order.");
 							break;
 						}
 						
