@@ -154,8 +154,8 @@ public class Customer extends Agent
 			int quantity;
 			
 			// Change back to:
-			//dueInDays = floor(1,10, rand);
-			dueInDays = 1;
+			dueInDays = floor(1,10, rand);
+			//dueInDays = 1;
 			
 			price = floor(600,200,rand);
 			quantity = floor(1,10,rand);

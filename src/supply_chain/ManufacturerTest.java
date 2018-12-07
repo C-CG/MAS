@@ -336,46 +336,48 @@ public class ManufacturerTest extends Agent
 								// Mapping these List Values to a key
 								stockLevel.put(pc.getOrderNumber(), stock);
 
-								orderNum = 1;
+								//orderNum = 1;
 
 								System.out.println("PC Received Order Num: " + pc.getOrderNumber() + " CPU " + pc.getComponents().get(0).getCPU() + " RAM " + pc.getComponents().get(0).getRam());
-
+								
+								System.out.println("Order Number: " + pc.getOrderNumber());
+								
 								// CPU
-								if (stockLevel.get(orderNum).get(0).equals("desktopCPU"))
+								if (stockLevel.get(pc.getOrderNumber()).get(0).equals("desktopCPU"))
 								{
 									++desktopCPUStock;
 								}
-								else if (stockLevel.get(orderNum).get(0).equals("laptopCPU"))
+								else if (stockLevel.get(pc.getOrderNumber()).get(0).equals("laptopCPU"))
 								{
 									++laptopCPUStock;
 								}
 
 								// Motherboard
-								if (stockLevel.get(orderNum).get(1).equals("desktopMotherboard"))
+								if (stockLevel.get(pc.getOrderNumber()).get(1).equals("desktopMotherboard"))
 								{
 									++desktopMotherboardStock;
 								}
-								else if (stockLevel.get(orderNum).get(1).equals("laptopMotherboard"))
+								else if (stockLevel.get(pc.getOrderNumber()).get(1).equals("laptopMotherboard"))
 								{
 									++laptopMotherboardStock;
 								}
 
 								// RAM
-								if (stockLevel.get(orderNum).get(2).equals("8Gb"))
+								if (stockLevel.get(pc.getOrderNumber()).get(2).equals("8Gb"))
 								{
 									++ram8GbStock;
 								}
-								else if (stockLevel.get(orderNum).get(2).equals("16Gb"))
+								else if (stockLevel.get(pc.getOrderNumber()).get(2).equals("16Gb"))
 								{
 									++ram16GbStock;
 								}
 
 								//HDD
-								if (stockLevel.get(orderNum).get(3).equals("1Tb"))
+								if (stockLevel.get(pc.getOrderNumber()).get(3).equals("1Tb"))
 								{
 									++hd1TbStock;
 								}
-								if (stockLevel.get(orderNum).get(3).equals("2Tb"))
+								if (stockLevel.get(pc.getOrderNumber()).get(3).equals("2Tb"))
 								{
 									++hd2TbStock;
 								}
@@ -383,11 +385,11 @@ public class ManufacturerTest extends Agent
 								//Screen (Check if added)
 
 								//OS
-								if (stockLevel.get(orderNum).get(4).equals("Windows"))
+								if (stockLevel.get(pc.getOrderNumber()).get(4).equals("Windows"))
 								{
 									++windowsOsStock;
 								}
-								else if (stockLevel.get(orderNum).get(4).equals("Linux"))
+								else if (stockLevel.get(pc.getOrderNumber()).get(4).equals("Linux"))
 								{
 									++linuxOsStock;
 								}
