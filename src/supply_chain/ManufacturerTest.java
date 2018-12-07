@@ -40,7 +40,7 @@ public class ManufacturerTest extends Agent
 
 	// HashMap / list to map an order/components (Used for the building of a PC)
 	HashMap<Integer, ArrayList<String>> customerOrders = new HashMap<Integer, ArrayList<String>>();
-	
+
 	HashMap<Integer, ArrayList<String>> stockLevel = new HashMap<Integer, ArrayList<String>>();
 	// order variable to track number of orders
 	int orderNum = 1;
@@ -159,7 +159,7 @@ public class ManufacturerTest extends Agent
 							Item it = order.getItem();
 							int dueInDays = order.getDueInDays();
 							int price = order.getPrice();
-
+							int dueDate = dayNum + dueInDays;
 							// Printing PC name to demo Ontology
 							if(it instanceof PC)
 							{
@@ -224,6 +224,7 @@ public class ManufacturerTest extends Agent
 								orders.add(pc.getComponents().get(0).getRam());
 								orders.add(pc.getComponents().get(0).getHD());
 								orders.add(pc.getComponents().get(0).getOS());
+								orders.add(Integer.toString(dueDate));
 								// NEED TO ADD SCREEN
 
 
@@ -232,7 +233,7 @@ public class ManufacturerTest extends Agent
 
 								// Testing output
 								//System.out.println("Order Tracking: " + customerOrders);
-								
+
 								addBehaviour(new StockCheck(myAgent));
 								// Remove Behaviour
 								myAgent.removeBehaviour(this);
@@ -268,7 +269,7 @@ public class ManufacturerTest extends Agent
 		{
 			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchConversationId("new order"), MessageTemplate.MatchContent("no-order"));
 			ACLMessage msg = myAgent.receive(mt);
-			
+
 			int desktopCPUStock = 0;
 			int laptopCPUStock = 0;
 			int desktopMotherboardStock = 0;
@@ -288,8 +289,8 @@ public class ManufacturerTest extends Agent
 				{
 					supplierAgent = msg.getSender();
 				}
-				
-				
+
+
 				if (msg.getContent().equals("no-order"))
 				{
 					//System.out.println("No Components received today.");
@@ -329,14 +330,14 @@ public class ManufacturerTest extends Agent
 								stock.add(pc.getComponents().get(0).getRam());
 								stock.add(pc.getComponents().get(0).getHD());
 								stock.add(pc.getComponents().get(0).getOS());
-								
+
 								// Mapping these List Values to a key
 								stockLevel.put(pc.getOrderNumber(), stock);
-								
+
 								orderNum = 1;
-								
+
 								System.out.println("PC Received Order Num: " + pc.getOrderNumber() + " CPU " + pc.getComponents().get(0).getCPU() + " RAM " + pc.getComponents().get(0).getRam());
-								
+
 								// CPU
 								if (stockLevel.get(orderNum).get(0).equals("desktopCPU"))
 								{
@@ -346,7 +347,7 @@ public class ManufacturerTest extends Agent
 								{
 									++laptopCPUStock;
 								}
-								
+
 								// Motherboard
 								if (stockLevel.get(orderNum).get(1).equals("desktopMotherboard"))
 								{
@@ -356,7 +357,7 @@ public class ManufacturerTest extends Agent
 								{
 									++laptopMotherboardStock;
 								}
-								
+
 								// RAM
 								if (stockLevel.get(orderNum).get(2).equals("8Gb"))
 								{
@@ -366,7 +367,7 @@ public class ManufacturerTest extends Agent
 								{
 									++ram16GbStock;
 								}
-								
+
 								//HDD
 								if (stockLevel.get(orderNum).get(3).equals("1Tb"))
 								{
@@ -376,9 +377,9 @@ public class ManufacturerTest extends Agent
 								{
 									++hd2TbStock;
 								}
-								
+
 								//Screen (Check if added)
-								
+
 								//OS
 								if (stockLevel.get(orderNum).get(4).equals("Windows"))
 								{
@@ -388,53 +389,232 @@ public class ManufacturerTest extends Agent
 								{
 									++linuxOsStock;
 								}
-								
-								
+
+
 								// Order Complete which means the Day is done for the Manufacturer Agent
 								++orderNum;
-								
+
 							}
 						}
-						
+
 					}
 				}
 				else
 				{
 					System.out.println("RANDOM MESSAGE RECEIVED FROM SUPPLIER");
 				}
-				
-				System.out.println("Stock Check: " + "Desktop CPU: " + desktopCPUStock + " Desktop Motherboard: " + desktopMotherboardStock + " Laptop CPU: " + laptopCPUStock + " Laptop Motherboard: " + laptopMotherboardStock
-				+ " Ram 8GB: " + ram8GbStock + " Ram 16GB: " + ram16GbStock + " HDD 1TB: " + hd1TbStock + " HDD 2TB: " + hd2TbStock + " Windows OS: " + windowsOsStock + " Linux OS: " + linuxOsStock);
+
+
 				// After this begin new behaviour (delivery)
 				// ^ For Loop that goes through, customerOrders and stockLevel
 				// See's if they contain the same stuff, if so send order
 				//System.out.println("Customer Orders Received: " + customerOrders);
-				
+
 				// Sets what components we need = 0, may make these global and -- when component has been used
 				int needDesktopCPU = 0;
 				int needLaptopCPU = 0;
+				int needDesktopMotherboard = 0;
+				int needLaptopMotherboard = 0;
+				int needRam8Gb = 0;
+				int needRam16Gb = 0;
+				int needHD1Tb = 0;
+				int needHD2Tb = 0;
+				int needWindowsOs = 0;
+				int needLinuxOs = 0;
+
+				ArrayList<String> stock = new ArrayList<String>();
 				
 				//System.out.println("Customer Order Test: " + customerOrders.get(1));
 				for (int i =1; i <= customerOrders.size(); ++i)
 				{
 					// Works, outputs each order order 1 = i(1), 2 = i(2)
-					System.out.println("I Value: " + i);
-					System.out.println("Customer Order: " + customerOrders.get(i));
-					
-					// Gets the CPU of the first order
-					if (customerOrders.get(i).get(0).equals("desktopCPU"))
+					//System.out.println("I Value: " + i);
+					//System.out.println("Customer Order: " + customerOrders.get(i));
+
+					// Need to store the due date of the order
+					// If due date == current day then go through all this crap
+
+					String day = String.valueOf(dayNum);
+
+					// If the due date of the Customer order is equal to today then:
+					if (customerOrders.get(i).get(5).equals(day))
 					{
-						++needDesktopCPU;
+						System.out.println("ORDER IS DUE: " + customerOrders.get(i));
+						// Move the if's to this
+						
+						// Now Checking if the Components are in stock
+						
+						// CPU
+						if (customerOrders.get(i).get(0).equals("desktopCPU") && desktopCPUStock != 0)
+						{
+							System.out.println("Desktop CPU in stock and able to ship.");
+							--desktopCPUStock;
+						}
+						else if (customerOrders.get(i).get(0).equals("laptopCPU") && laptopCPUStock != 0)
+						{
+							System.out.println("Laptop CPU in stock and able to ship.");
+							--laptopCPUStock;
+						}
+						else
+						{
+							System.out.println("No CPU's not in stock, cannot ship order.");
+							break;
+						}
+						
+						// Motherboard
+						if(customerOrders.get(i).get(1).equals("desktopMotherboard") && desktopMotherboardStock !=0)
+						{
+							System.out.println("Desktop Motherboard in stock and able to ship.");
+							--desktopMotherboardStock;
+						}
+						else if(customerOrders.get(i).get(1).equals("laptopMotherboard") && laptopMotherboardStock !=0)
+						{
+							System.out.println("Laptop Motherboard in stock and able to ship.");
+							--laptopMotherboardStock;
+						}
+						else
+						{
+							System.out.println("No Motherboards in stock, cannot ship order.");
+							break;
+						}
+						
+						// RAM
+						if (customerOrders.get(i).get(2).equals("8Gb") && ram8GbStock !=0)
+						{
+							System.out.println("8Gb ram in stock and able to ship.");
+							--ram8GbStock;
+						}
+						else if (customerOrders.get(i).get(2).equals("16Gb") && ram16GbStock !=0)
+						{
+							System.out.println("16Gb ram in stock and able to ship.");
+							--ram16GbStock;
+						}
+						else
+						{
+							System.out.println("No ram in stock, cannot ship order.");
+							break;
+						}
+						
+						// HD
+						if (customerOrders.get(i).get(3).equals("1Tb") && hd1TbStock !=0)
+						{
+							System.out.println("1Tb hd in stock and able to ship.");
+							--hd1TbStock;
+						}
+						else if (customerOrders.get(i).get(3).equals("2Tb") && hd2TbStock !=0)
+						{
+							System.out.println("2Tb hd in stock and able to ship.");
+							--hd2TbStock;
+						}
+						else
+						{
+							System.out.println("No HD in stock, cannot ship order.");
+							break;
+						}
+						
+						// OS
+						if (customerOrders.get(i).get(4).equals("Windows") && windowsOsStock !=0)
+						{
+							System.out.println("Windows OS in stock and able to ship.");
+							--windowsOsStock;
+						}
+						else if (customerOrders.get(i).get(4).equals("Linux") && linuxOsStock !=0)
+						{
+							System.out.println("Linux OS in stock and able to ship.");
+							--linuxOsStock;
+						}
+						else
+						{
+							System.out.println("No OS in stock, cannot ship order.");
+							break;
+						}
+						
+						System.out.println("ORDER IS ABLE TO BE SENT: " + customerOrders.get(i));
+						
+						/*
+						// CPU
+						if (customerOrders.get(i).get(0).equals("desktopCPU"))
+						{
+							++needDesktopCPU;
+						}
+						else if (customerOrders.get(i).get(0).equals("laptopCPU"))
+						{
+							++needLaptopCPU;
+						}
+
+						// Motherboard
+						if (customerOrders.get(i).get(1).equals("desktopMotherboard"))
+						{
+							++needDesktopMotherboard;
+						}
+						else if (customerOrders.get(i).get(1).equals("laptopMotherboard"))
+						{
+							++needLaptopMotherboard;
+						}
+
+						// Ram
+						if (customerOrders.get(i).get(2).equals("8Gb"))
+						{
+							++needRam8Gb;
+						}
+						else if (customerOrders.get(i).get(2).equals("16Gb"))
+						{
+							++needRam16Gb;
+						}
+
+						// HD
+						if (customerOrders.get(i).get(3).equals("1Tb"))
+						{
+							++needHD1Tb;
+						}
+						else if (customerOrders.get(i).get(3).equals("2Tb"))
+						{
+							++needHD2Tb;
+						}
+
+						// OS
+						if (customerOrders.get(i).get(4).equals("Linux"))
+						{
+							++needLinuxOs;
+						}
+						else if (customerOrders.get(i).get(4).equals("Windows"))
+						{
+							++needWindowsOs;
+						}
+
+						
+						// Need to figure out
+
+						if (needDesktopCPU == 1 || needLaptopCPU == 1)
+						{	
+							// Add more if's here, somehow need to remove the values
+
+							if (needDesktopMotherboard == 1 || needLaptopCPU == 1)
+							{
+								if (needRam8Gb == 1 || needRam16Gb == 1)
+								{
+									if (needHD1Tb == 1 || needHD2Tb == 1)
+									{
+										if (needLinuxOs == 1 || needWindowsOs == 1)
+										{
+											System.out.println("PC IS ABLE TO BE SENT");
+										}
+									}
+								}
+							}
+
+						}		
+						*/
 					}
-					else if (customerOrders.get(i).get(0).equals("laptopCPU"))
-					{
-						++needLaptopCPU;
-					}
-					
 				}
-				
-				System.out.println("Needed Components: " + "Desktop CPU: " + needDesktopCPU + " Laptop CPU: " + needLaptopCPU);
-				
+				// Checking what Components I need
+				System.out.println("Needed Components: " + "Desktop CPU: " + needDesktopCPU + " Laptop CPU: " + needLaptopCPU + " Desktop Motherboard: " + needDesktopMotherboard + " Laptop Motherboard: " + needLaptopMotherboard
+						);
+				// Stock Check
+				System.out.println("Stock Check: " + "Desktop CPU: " + desktopCPUStock + " Desktop Motherboard: " + desktopMotherboardStock + " Laptop CPU: " + laptopCPUStock + " Laptop Motherboard: " + laptopMotherboardStock
+						+ " Ram 8GB: " + ram8GbStock + " Ram 16GB: " + ram16GbStock + " HDD 1TB: " + hd1TbStock + " HDD 2TB: " + hd2TbStock + " Windows OS: " + windowsOsStock + " Linux OS: " + linuxOsStock);
+
+
 				addBehaviour(new DayComplete(myAgent));
 				myAgent.removeBehaviour(this);
 			}
